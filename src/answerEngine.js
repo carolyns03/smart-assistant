@@ -6,17 +6,22 @@
  *
  * @param {Array} searchResults - Results from the search
  * @param {string} query - The original question
- * @returns {{ answer: string, sources: Array }}
+ * @param {Object} options - Optional context (e.g. freshness, filteredStats)
+ * @returns {{ answer: string, sources: Array, platforms: Array, freshness: string }}
  */
-function generateAnswer(searchResults, query) {
+function generateAnswer(searchResults, query, options) {
+  options = options || {};
+
   if (!searchResults || searchResults.length === 0) {
     return {
-      answer: "I couldn't find anything relevant to your question across the connected apps.",
+      answer: "I couldn't find any information relevant to your question based on the documents and conversations you have access to.",
       sources: [],
+      platforms: [],
+      freshness: null,
     };
   }
 
-  const sources = searchResults.map(function (r) {
+  var sources = searchResults.map(function (r) {
     return {
       app: r.app,
       id: r.item.id,
@@ -24,7 +29,7 @@ function generateAnswer(searchResults, query) {
     };
   });
 
-  var topResults = searchResults.slice(0, 5);
+  var topResults = searchResults.slice(0, 8);
   var parts = [];
   var seenApps = new Set();
 
@@ -32,19 +37,24 @@ function generateAnswer(searchResults, query) {
     var result = topResults[i];
     var app = result.app;
     var item = result.item;
-    var appName = ({ wiki: 'Wiki', jira: 'Jira', slack: 'Slack', drive: 'Drive' })[app] || app;
+    var appName = ({ wiki: 'Confluence', jira: 'Jira', slack: 'Slack', drive: 'Google Drive' })[app] || app;
 
     var snippet = '';
     if (app === 'jira') {
-      snippet = '**' + item.title + '** (' + item.status + ', ' + item.priority + ', assigned to ' + item.assignee + '): ' + item.content;
+      snippet = '**' + item.title + '** [Jira] (' + item.status + ', ' + item.priority + ', assigned to ' + item.assignee + '): ' + item.content;
     } else if (app === 'slack') {
-      snippet = '**' + item.channel + '** — ' + item.author + ' said: "' + item.content + '"';
+      snippet = '**#' + item.channel + '** [Slack] — ' + item.author + ' said: "' + item.content + '"';
+    } else if (app === 'wiki') {
+      snippet = '**' + item.title + '** [Confluence]: ' + item.content;
+      if (item.lastUpdated) {
+        snippet += ' (last updated: ' + new Date(item.lastUpdated).toLocaleString() + ')';
+      }
     } else {
-      snippet = '**' + item.title + '** (' + appName + '): ' + item.content;
+      snippet = '**' + item.title + '** [' + appName + ']: ' + item.content;
     }
 
-    if (snippet.length > 300) {
-      snippet = snippet.substring(0, 297) + '...';
+    if (snippet.length > 400) {
+      snippet = snippet.substring(0, 397) + '...';
     }
 
     parts.push(snippet);
@@ -55,7 +65,16 @@ function generateAnswer(searchResults, query) {
   var intro = 'Based on ' + searchResults.length + ' relevant item' + (searchResults.length === 1 ? '' : 's') + ' from ' + seenAppsArr.join(', ') + ':\n\n';
   var answer = intro + parts.join('\n\n');
 
-  return { answer: answer, sources: sources };
+  // Freshness info: find the most recent lastUpdated
+  var freshness = null;
+  for (var j = 0; j < topResults.length; j++) {
+    if (topResults[j].item.lastUpdated) {
+      freshness = topResults[j].item.lastUpdated;
+      break;
+    }
+  }
+
+  return { answer: answer, sources: sources, platforms: seenAppsArr, freshness: freshness };
 }
 
 module.exports = { generateAnswer };

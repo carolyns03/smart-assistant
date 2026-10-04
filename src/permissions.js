@@ -38,11 +38,9 @@ function canAccessItem(user, permissions, appKey, item) {
   // For Slack, check channel-based access
   if (appKey === 'slack' && appPerm.access === 'channel-based') {
     const channel = item.channel;
-    // If deniedChannels includes this channel, block it
     if (appPerm.deniedChannels && appPerm.deniedChannels.includes(channel)) {
       return false;
     }
-    // If allowedChannels is specified, only allow those
     if (appPerm.allowedChannels && !appPerm.allowedChannels.includes(channel)) {
       return false;
     }
@@ -51,9 +49,7 @@ function canAccessItem(user, permissions, appKey, item) {
 
   // For other apps, check role-based access via the item's allowedRoles
   if (appPerm.access === 'role-based') {
-    // Check if user's role is in the item's allowedRoles
     if (item.allowedRoles && item.allowedRoles.includes(user.role)) {
-      // Also check if this specific item is in deniedItems
       if (appPerm.deniedItems && appPerm.deniedItems.includes(item.id)) {
         return false;
       }
@@ -82,6 +78,7 @@ function getFilteredData(userId) {
 
   const filtered = {};
   const stats = { total: 0, visible: 0, hidden: 0 };
+  const hiddenItems = [];
 
   for (const appKey of Object.keys(allApps)) {
     filtered[appKey] = [];
@@ -92,11 +89,12 @@ function getFilteredData(userId) {
         stats.visible++;
       } else {
         stats.hidden++;
+        hiddenItems.push({ app: appKey, id: item.id, title: item.title || item.channel });
       }
     }
   }
 
-  return { user, filtered, stats };
+  return { user, filtered, stats, hiddenItems };
 }
 
 module.exports = {

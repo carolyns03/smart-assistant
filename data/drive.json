@@ -42,7 +42,7 @@
     "content": "Contains: logo files (SVG, PNG, various sizes), brand color palette, font files (Inter), icon set, presentation templates, email signature template. Use the updated logo with correct spacing.",
     "tags": ["design", "brand", "assets"],
     "restricted": false,
-    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
   },
   {
     "id": "drive-006",
@@ -51,7 +51,7 @@
     "content": "Engagement score: 7.2/10 (up from 6.8). Top positives: work-life balance, team culture, remote flexibility. Top concerns: career growth paths, compensation transparency, meeting overload. Response rate: 89%.",
     "tags": ["hr", "survey", "engagement"],
     "restricted": false,
-    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
   },
   {
     "id": "drive-007",
@@ -96,7 +96,7 @@
     "content": "Day 1: laptop setup, email, Slack, VPN. Week 1: meet team, codebase access, dev environment setup. Week 2: first small task assigned. 30 days: check-in with manager. 60 days: first PR merged. 90 days: performance review.",
     "tags": ["hr", "onboarding", "general"],
     "restricted": false,
-    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
   },
   {
     "id": "drive-012",
@@ -132,6 +132,6 @@
     "content": "Photos from the September team building event: escape room, dinner, karaoke. Great turnout - 85% of the office participated. Next event: October Halloween costume contest and pumpkin carving.",
     "tags": ["social", "events", "general"],
     "restricted": false,
-    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
   }
 ]

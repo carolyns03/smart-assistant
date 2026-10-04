@@ -2,26 +2,79 @@
   "overrides": {
     "user-junior": {
       "slack": {
-        "allowedChannels": ["#general", "#engineering", "#random", "#design"],
-        "deniedChannels": ["#security-incidents"]
+        "allowedChannels": [
+          "#general",
+          "#engineering",
+          "#random",
+          "#design"
+        ],
+        "deniedChannels": [
+          "#security-incidents"
+        ]
+      }
+    },
+    "user-oncall": {
+      "slack": {
+        "allowedChannels": [
+          "#general",
+          "#engineering",
+          "#random",
+          "#design"
+        ],
+        "deniedChannels": [
+          "#security-incidents"
+        ]
       }
     },
     "user-contractor": {
       "slack": {
-        "allowedChannels": ["#general", "#random", "#design"],
-        "deniedChannels": ["#engineering", "#security-incidents"]
+        "allowedChannels": [
+          "#general",
+          "#random",
+          "#design"
+        ],
+        "deniedChannels": [
+          "#engineering",
+          "#security-incidents"
+        ]
       }
     },
     "user-security": {
       "slack": {
-        "allowedChannels": ["#general", "#engineering", "#random", "#design", "#security-incidents"],
+        "allowedChannels": [
+          "#general",
+          "#engineering",
+          "#random",
+          "#design",
+          "#security-incidents"
+        ],
         "deniedChannels": []
       }
     },
     "user-compliance": {
       "slack": {
-        "allowedChannels": ["#general", "#engineering", "#random", "#design", "#security-incidents"],
+        "allowedChannels": [
+          "#general",
+          "#engineering",
+          "#random",
+          "#design",
+          "#security-incidents"
+        ],
         "deniedChannels": []
+      }
+    },
+    "user-custservice": {
+      "slack": {
+        "access": "channel-based",
+        "allowedChannels": [
+          "#general",
+          "#random",
+          "#design"
+        ],
+        "deniedChannels": [
+          "#engineering",
+          "#security-incidents"
+        ]
       }
     }
   }

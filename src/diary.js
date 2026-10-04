@@ -57,8 +57,18 @@ function appendEntry(entryData) {
     userRole: entryData.userRole,
     query: entryData.query,
     answer: entryData.answer,
-    sources: entryData.sources,
+    sources: entryData.sources || [],
+    platforms: entryData.platforms || [],
+    freshness: entryData.freshness || null,
     stats: entryData.stats,
+    hiddenItems: entryData.hiddenItems || [],
+    authorization: {
+      decision: 'ALLOWED',
+      method: 'RBAC + channel-based filtering',
+      filteredBeforeLLM: true,
+      visibleItems: entryData.stats ? entryData.stats.visible : 0,
+      hiddenItems: entryData.stats ? entryData.stats.hidden : 0,
+    },
     previousFingerprint: previousFingerprint,
   };
 
@@ -66,10 +76,16 @@ function appendEntry(entryData) {
     index: entry.index,
     timestamp: entry.timestamp,
     userId: entry.userId,
+    userName: entry.userName,
+    userRole: entry.userRole,
     query: entry.query,
     answer: entry.answer,
     sources: entry.sources,
+    platforms: entry.platforms,
+    freshness: entry.freshness,
     stats: entry.stats,
+    hiddenItems: entry.hiddenItems,
+    authorization: entry.authorization,
   });
 
   entries.push(entry);
@@ -81,8 +97,6 @@ function appendEntry(entryData) {
 
 /**
  * Verify the integrity of the diary chain.
- * Recomputes every fingerprint and checks it matches.
- * If any entry was tampered with, the chain breaks and we report which entry.
  */
 function verifyDiary() {
   var diary = loadDiary();
@@ -95,17 +109,23 @@ function verifyDiary() {
       index: entry.index,
       timestamp: entry.timestamp,
       userId: entry.userId,
+      userName: entry.userName,
+      userRole: entry.userRole,
       query: entry.query,
       answer: entry.answer,
       sources: entry.sources,
+      platforms: entry.platforms,
+      freshness: entry.freshness,
       stats: entry.stats,
+      hiddenItems: entry.hiddenItems,
+      authorization: entry.authorization,
     });
 
     if (entry.fingerprint !== expectedFingerprint) {
       return {
         valid: false,
         tamperedIndex: i,
-        message: 'Tampering detected at entry #' + i + '. The fingerprint does not match. This entry may have been edited or removed.',
+        message: 'Tampering detected at entry #' + i + '. The fingerprint does not match.',
         entries: entries,
       };
     }
@@ -143,7 +163,6 @@ function verifyDiary() {
 
 /**
  * Tamper with an entry (for demo purposes).
- * Edits the diary file directly, changing content WITHOUT updating fingerprints.
  */
 function tamperEntry(index, field, newValue) {
   var diary = loadDiary();
@@ -166,15 +185,22 @@ function repairDiary() {
 
   for (var i = 0; i < entries.length; i++) {
     entries[i].previousFingerprint = previousFingerprint;
-    entries[i].fingerprint = computeFingerprint(previousFingerprint, {
+    var contentForHash = {
       index: entries[i].index,
       timestamp: entries[i].timestamp,
       userId: entries[i].userId,
+      userName: entries[i].userName,
+      userRole: entries[i].userRole,
       query: entries[i].query,
       answer: entries[i].answer,
       sources: entries[i].sources,
+      platforms: entries[i].platforms,
+      freshness: entries[i].freshness,
       stats: entries[i].stats,
-    });
+      hiddenItems: entries[i].hiddenItems,
+      authorization: entries[i].authorization,
+    };
+    entries[i].fingerprint = computeFingerprint(previousFingerprint, contentForHash);
     previousFingerprint = entries[i].fingerprint;
   }
 

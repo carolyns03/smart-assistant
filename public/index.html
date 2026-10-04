@@ -3,82 +3,110 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Assistant MVP</title>
+  <title>Internal Brain — Context-Aware Enterprise Knowledge System</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #1a1a2e; }
-    .header { background: #1a1a2e; color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
-    .header h1 { font-size: 20px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e0e0e8; }
+    .header { background: #1a1a2e; color: white; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1a73e8; }
+    .header h1 { font-size: 20px; display: flex; align-items: center; gap: 8px; }
+    .header .logo { font-size: 24px; }
     .header nav a { color: #a0a0c0; text-decoration: none; margin-left: 24px; font-size: 14px; }
     .header nav a:hover, .header nav a.active { color: white; }
-    .container { max-width: 900px; margin: 0 auto; padding: 24px; }
-    .user-bar { background: white; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-    .user-bar label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 8px; }
-    .user-select-row { display: flex; gap: 12px; flex-wrap: wrap; }
-    .user-card { border: 2px solid #e0e0e0; border-radius: 8px; padding: 12px 16px; cursor: pointer; transition: all 0.15s; flex: 1; min-width: 180px; }
+    .container { max-width: 960px; margin: 0 auto; padding: 20px; }
+    .scenario-bar { background: #1a1a2e; border-radius: 10px; padding: 16px; margin-bottom: 16px; border: 1px solid #2a2a4a; }
+    .scenario-bar .title { font-size: 14px; font-weight: 700; color: #8ab4f8; margin-bottom: 10px; }
+    .scenario-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .scenario-btns button { padding: 8px 14px; border: 1px solid #2a2a4a; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; background: #1a1a2e; color: #c0c0d0; transition: all 0.15s; }
+    .scenario-btns button:hover { border-color: #1a73e8; color: #8ab4f8; background: #1e1e3a; }
+    .scenario-btns button.active { border-color: #1a73e8; background: #1a73e8; color: white; }
+    .user-bar { background: #1a1a2e; border-radius: 10px; padding: 16px; margin-bottom: 16px; border: 1px solid #2a2a4a; }
+    .user-bar label { font-weight: 600; font-size: 13px; display: block; margin-bottom: 10px; color: #8ab4f8; }
+    .user-select-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .user-card { border: 2px solid #2a2a4a; border-radius: 8px; padding: 10px 14px; cursor: pointer; transition: all 0.15s; flex: 1; min-width: 150px; }
     .user-card:hover { border-color: #1a73e8; }
-    .user-card.selected { border-color: #1a73e8; background: #e8f0fe; }
-    .user-card .name { font-weight: 600; font-size: 14px; }
-    .user-card .title { font-size: 12px; color: #666; margin-top: 2px; }
-    .user-card .role-badge { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 4px; background: #eee; }
-    .chat-box { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden; }
-    .chat-messages { padding: 16px; max-height: 400px; overflow-y: auto; }
+    .user-card.selected { border-color: #1a73e8; background: #162040; }
+    .user-card .name { font-weight: 600; font-size: 13px; }
+    .user-card .title-text { font-size: 11px; color: #888; margin-top: 2px; }
+    .user-card .role-badge { display: inline-block; font-size: 9px; padding: 2px 6px; border-radius: 4px; margin-top: 4px; background: #2a2a4a; color: #c0c0d0; }
+    .user-card .role-badge.perm-changed { background: #dc3545; color: white; }
+    .chat-box { background: #1a1a2e; border-radius: 10px; border: 1px solid #2a2a4a; overflow: hidden; }
+    .chat-messages { padding: 16px; max-height: 450px; overflow-y: auto; }
     .msg { margin-bottom: 12px; }
     .msg.user { text-align: right; }
-    .msg .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; max-width: 80%; text-align: left; font-size: 14px; line-height: 1.5; }
+    .msg .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; max-width: 80%; text-align: left; font-size: 13px; line-height: 1.6; }
     .msg.user .bubble { background: #1a73e8; color: white; }
-    .msg.assistant .bubble { background: #f0f0f0; color: #1a1a2e; }
-    .msg.assistant .bubble pre { white-space: pre-wrap; font-family: inherit; font-size: 14px; }
-    .sources { margin-top: 8px; font-size: 12px; color: #666; }
-    .sources .source-tag { display: inline-block; background: #e8f0fe; color: #1a73e8; padding: 2px 8px; border-radius: 4px; margin: 2px; font-size: 11px; }
-    .stats-bar { font-size: 11px; color: #888; margin-top: 6px; }
-    .chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #e0e0e0; }
-    .chat-input input { flex: 1; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
-    .chat-input button { padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+    .msg.assistant .bubble { background: #2a2a3e; color: #e0e0e8; border: 1px solid #3a3a5a; }
+    .msg.assistant .bubble pre { white-space: pre-wrap; font-family: inherit; font-size: 13px; }
+    .msg.system .bubble { background: #2a1a1a; color: #ff9999; border: 1px solid #5a2a2a; font-size: 12px; }
+    .sources { margin-top: 8px; font-size: 11px; color: #888; }
+    .sources .source-tag { display: inline-block; background: #162040; color: #8ab4f8; padding: 3px 8px; border-radius: 4px; margin: 2px; font-size: 10px; border: 1px solid #2a3a5a; }
+    .stats-bar { font-size: 10px; color: #666; margin-top: 6px; }
+    .platforms-bar { font-size: 10px; color: #8ab4f8; margin-top: 4px; }
+    .freshness-bar { font-size: 10px; color: #28a745; margin-top: 4px; }
+    .chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #2a2a4a; }
+    .chat-input input { flex: 1; padding: 10px 12px; border: 1px solid #3a3a5a; border-radius: 6px; font-size: 13px; background: #0f1117; color: #e0e0e8; }
+    .chat-input input::placeholder { color: #555; }
+    .chat-input button { padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
     .chat-input button:hover { background: #1557b0; }
-    .chat-input button:disabled { background: #ccc; cursor: not-allowed; }
-    .demo-bar { background: #fff3cd; border: 1px solid #ffe69c; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; }
-    .demo-bar strong { color: #664d03; }
-    .demo-btns { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
-    .demo-btns button { padding: 6px 12px; background: #ffc107; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
-    .demo-btns button:hover { background: #e0a800; }
-    .empty-state { text-align: center; color: #999; padding: 40px; font-size: 14px; }
-    .refresh-bar { font-size: 11px; color: #664d03; margin-top: 6px; }
-    .refresh-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #28a745; margin-right: 4px; }
+    .chat-input button:disabled { background: #333; cursor: not-allowed; }
+    .demo-panel { background: #1a1a2e; border-radius: 10px; padding: 16px; margin-bottom: 16px; border: 1px solid #2a2a4a; }
+    .demo-panel .panel-title { font-size: 13px; font-weight: 700; color: #ffc107; margin-bottom: 10px; }
+    .demo-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .demo-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
+    .demo-btn-yellow { background: #ffc107; color: #333; }
+    .demo-btn-yellow:hover { background: #e0a800; }
+    .demo-btn-red { background: #dc3545; color: white; }
+    .demo-btn-red:hover { background: #b02a37; }
+    .demo-btn-blue { background: #1a73e8; color: white; }
+    .demo-btn-blue:hover { background: #1557b0; }
+    .demo-btn-green { background: #28a745; color: white; }
+    .demo-btn-green:hover { background: #218838; }
+    .refresh-bar { font-size: 10px; color: #28a745; margin-top: 8px; }
+    .refresh-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #28a745; margin-right: 4px; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .empty-state { text-align: center; color: #555; padding: 40px; font-size: 13px; }
+    .scenario-desc { font-size: 11px; color: #888; margin-top: 8px; line-height: 1.4; }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>Smart Assistant</h1>
+    <h1><span class="logo">🧠</span> Internal Brain</h1>
     <nav>
       <a href="/" class="active">Chat</a>
-      <a href="/diary.html">Diary</a>
+      <a href="/diary.html">Audit Trail</a>
     </nav>
   </div>
 
   <div class="container">
-    <div class="demo-bar">
-      <strong>Demo controls:</strong> Try the scenario buttons below to see the system in action.
-      <div class="demo-btns">
-        <button onclick="demoScenario(1)">1. Junior asks a question</button>
-        <button onclick="demoScenario(2)">2. Contractor asks about breach</button>
-        <button onclick="demoScenario(3)">3. Edit a page (live update)</button>
-        <button onclick="demoScenario(4)">4. Remove engineer's channel access</button>
+    <div class="scenario-bar">
+      <div class="title">5 Scenario Demo Flows</div>
+      <div class="scenario-btns">
+        <button onclick="runScenario(1)">S1: Unified Query</button>
+        <button onclick="runScenario(2)">S2: Data Freshness</button>
+        <button onclick="runScenario(3)">S3: Permission Enforcement</button>
+        <button onclick="runScenario(4)">S4: Permission Change</button>
+        <button onclick="runScenario(5)">S5: Audit Inquiry</button>
       </div>
-      <div class="refresh-bar" id="refreshBar"><span class="refresh-dot"></span> Data is re-read from files on every request — changes appear immediately.</div>
+      <div class="scenario-desc" id="scenarioDesc">Each scenario demonstrates a key challenge requirement. Select one to see the guided demo flow.</div>
+    </div>
+
+    <div class="demo-panel" id="demoPanel" style="display:none;">
+      <div class="panel-title" id="demoPanelTitle">Demo Controls</div>
+      <div id="demoPanelContent"></div>
     </div>
 
     <div class="user-bar">
-      <label>Who are you? (select a persona)</label>
+      <label>Select a persona (who is asking?)</label>
       <div class="user-select-row" id="userCards"></div>
+      <div class="refresh-bar"><span class="refresh-dot"></span> Data is re-read from files on every request. Changes appear immediately (data freshness).</div>
     </div>
 
     <div class="chat-box">
       <div class="chat-messages" id="chatMessages">
-        <div class="empty-state">Select a persona and ask a question to get started.</div>
+        <div class="empty-state">Select a persona and ask a question to get started.<br>Or click a scenario button above for a guided demo.</div>
       </div>
       <div class="chat-input">
-        <input type="text" id="queryInput" placeholder="Ask a question..." onkeypress="if(event.key==='Enter') askQuestion()">
+        <input type="text" id="queryInput" placeholder="Ask a question in natural language..." onkeypress="if(event.key==='Enter') askQuestion()">
         <button id="askBtn" onclick="askQuestion()">Ask</button>
       </div>
     </div>
@@ -87,21 +115,96 @@
   <script>
     var selectedUser = null;
     var users = [];
+    var permChangedUsers = new Set();
+
+    var scenarios = {
+      1: {
+        title: 'Scenario 1: Unified Natural-Language Query',
+        desc: 'A backend engineer asks a question spanning multiple platforms. The system pulls from Jira and Slack, synthesizes one answer with citations, omitting Slack threads from private channels the engineer is not in.',
+        user: 'user-junior',
+        query: "What's the status of the database migration project and were there any blockers raised in Slack last week?",
+        setup: function() {
+          selectUser('user-junior');
+          document.getElementById('queryInput').value = scenarios[1].query;
+          addSystemMessage('Scenario 1 loaded: Backend Engineer asks about DB migration + Slack blockers. Click "Ask" to see the cross-platform unified answer.');
+        }
+      },
+      2: {
+        title: 'Scenario 2: Data Freshness',
+        desc: 'An on-call engineer asks for the payment-service runbook. The runbook owner pushed a critical update (new failover step). The system must surface the updated version, not a stale cache.',
+        user: 'user-oncall',
+        query: "What's the latest runbook for the payment-service incident?",
+        setup: function() {
+          fetch('/api/apps/wiki/wiki-016', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: 'Payment-service incident response runbook. Step 1: Check Stripe dashboard for error rate. Step 2: Verify webhook endpoint is reachable. Step 3: If payment gateway is down, enable circuit breaker and queue payments. Step 4: NEW FAILVER STEP - Failover to backup payment gateway at pg-failover.company.internal if primary is down for more than 5 minutes. Step 5: Post incident status in #engineering. Step 6: Create P0 ticket in Jira. This runbook was updated at 1:00 PM today with the new failover step.',
+              lastUpdated: new Date().toISOString(),
+            }),
+          }).then(function() {
+            selectUser('user-oncall');
+            document.getElementById('queryInput').value = scenarios[2].query;
+            addSystemMessage('Scenario 2 loaded: Runbook updated at 1:00 PM with NEW failover step. On-call engineer asks for it. Click "Ask" to verify the answer includes the latest update (not stale).');
+          });
+        }
+      },
+      3: {
+        title: 'Scenario 3: Correct Permission Enforcement (Negative Case)',
+        desc: 'A contractor asks about the security breach incident report. The report is restricted. The system must NOT reveal the content or confirm the report exists beyond what the user already knows.',
+        user: 'user-contractor',
+        query: 'Show me the security incident report from the Q3 breach',
+        setup: function() {
+          selectUser('user-contractor');
+          document.getElementById('queryInput').value = scenarios[3].query;
+          addSystemMessage('Scenario 3 loaded: Contractor asks for the breach report (restricted). Click "Ask" - the answer should NOT contain the report contents or confirm its existence.');
+        }
+      },
+      4: {
+        title: 'Scenario 4: Live Permission Change Handling',
+        desc: 'A Customer Service rep asks about bank account info (sensitive PII). Then we change their role (add/remove/change) and ask the SAME question. The answer must reflect the new permissions.',
+        user: 'user-custservice',
+        query: 'Show me the bank account information for customers',
+        setup: function() {
+          selectUser('user-custservice');
+          document.getElementById('queryInput').value = scenarios[4].query;
+          showPermissionChangePanel();
+          addSystemMessage('Scenario 4 loaded: Customer Service asks about bank account info (they cannot see it). After asking, use the panel to change their role, then ask again to see the answer change.');
+        }
+      },
+      5: {
+        title: 'Scenario 5: Audit Inquiry',
+        desc: 'A Compliance Officer queries the audit trail to reconstruct what a user asked, what was retrieved, what was answered, timestamps, and authorization decisions. Includes which platform the data came from.',
+        user: 'user-compliance',
+        query: '',
+        setup: function() {
+          selectUser('user-compliance');
+          document.getElementById('queryInput').value = '';
+          addSystemMessage('Scenario 5 loaded: Compliance Officer mode. Go to the Audit Trail page to search what any user has asked, what was retrieved, and what was answered. You can search by user to reconstruct their activity.');
+          window.open('/diary.html', '_blank');
+        }
+      }
+    };
 
     function loadUsers() {
       fetch('/api/users').then(function(r) { return r.json(); }).then(function(data) {
         users = data;
-        var container = document.getElementById('userCards');
-        container.innerHTML = '';
-        users.forEach(function(u) {
-          var card = document.createElement('div');
-          card.className = 'user-card';
-          card.onclick = function() { selectUser(u.id); };
-          card.innerHTML = '<div class="name">' + u.name + '</div>' +
-            '<div class="title">' + u.title + '</div>' +
-            '<div class="role-badge">' + u.role + '</div>';
-          container.appendChild(card);
-        });
+        renderUserCards();
+      });
+    }
+
+    function renderUserCards() {
+      var container = document.getElementById('userCards');
+      container.innerHTML = '';
+      users.forEach(function(u) {
+        var card = document.createElement('div');
+        card.className = 'user-card';
+        card.onclick = function() { selectUser(u.id); };
+        var permClass = permChangedUsers.has(u.id) ? ' perm-changed' : '';
+        card.innerHTML = '<div class="name">' + u.name + '</div>' +
+          '<div class="title-text">' + u.title + '</div>' +
+          '<div class="role-badge' + permClass + '">' + u.role + (permChangedUsers.has(u.id) ? ' (changed)' : '') + '</div>';
+        container.appendChild(card);
       });
     }
 
@@ -118,17 +221,18 @@
       var input = document.getElementById('queryInput');
       var query = input.value.trim();
       if (!query) return;
-
       addMessage('user', query);
       input.value = '';
       document.getElementById('askBtn').disabled = true;
-
       fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: selectedUser, query: query }),
       }).then(function(r) { return r.json(); }).then(function(data) {
         addMessage('assistant', data);
+        document.getElementById('askBtn').disabled = false;
+      }).catch(function(err) {
+        addSystemMessage('Error: ' + err.message);
         document.getElementById('askBtn').disabled = false;
       });
     }
@@ -137,31 +241,48 @@
       var container = document.getElementById('chatMessages');
       var empty = container.querySelector('.empty-state');
       if (empty) empty.remove();
-
       var msg = document.createElement('div');
       msg.className = 'msg ' + role;
       var bubble = document.createElement('div');
       bubble.className = 'bubble';
-
       if (role === 'user') {
         bubble.textContent = data;
       } else {
         var html = '<pre>' + escapeHtml(data.answer) + '</pre>';
+        if (data.platforms && data.platforms.length > 0) {
+          html += '<div class="platforms-bar">Platforms consulted: ' + data.platforms.join(', ') + '</div>';
+        }
+        if (data.freshness) {
+          html += '<div class="freshness-bar">Latest data updated: ' + new Date(data.freshness).toLocaleString() + '</div>';
+        }
         if (data.sources && data.sources.length > 0) {
           html += '<div class="sources"><strong>Sources:</strong> ';
           data.sources.forEach(function(s) {
-            var appName = ({wiki:'Wiki',jira:'Jira',slack:'Slack',drive:'Drive'})[s.app] || s.app;
+            var appName = ({wiki:'Confluence',jira:'Jira',slack:'Slack',drive:'Drive'})[s.app] || s.app;
             html += '<span class="source-tag">' + appName + ': ' + escapeHtml(s.title) + '</span>';
           });
           html += '</div>';
         }
         if (data.stats) {
           html += '<div class="stats-bar">Visible: ' + data.stats.visible + ' / ' + data.stats.total +
-            ' items (' + data.stats.hidden + ' hidden by permissions) | Diary entry #' + (data.diaryEntryIndex !== undefined ? data.diaryEntryIndex : '?') + '</div>';
+            ' items (' + data.stats.hidden + ' hidden by permissions) | Audit entry #' + (data.diaryEntryIndex !== undefined ? data.diaryEntryIndex : '?') + '</div>';
         }
         bubble.innerHTML = html;
       }
+      msg.appendChild(bubble);
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+    }
 
+    function addSystemMessage(text) {
+      var container = document.getElementById('chatMessages');
+      var empty = container.querySelector('.empty-state');
+      if (empty) empty.remove();
+      var msg = document.createElement('div');
+      msg.className = 'msg system';
+      var bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
       msg.appendChild(bubble);
       container.appendChild(msg);
       container.scrollTop = container.scrollHeight;
@@ -172,38 +293,66 @@
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    function demoScenario(num) {
-      if (num === 1) {
-        selectUser('user-junior');
-        document.getElementById('queryInput').value = 'What is the deployment process?';
-      } else if (num === 2) {
-        selectUser('user-contractor');
-        document.getElementById('queryInput').value = 'Tell me about the data breach report';
-      } else if (num === 3) {
-        var newContent = 'To deploy: 1) Run tests. 2) Create PR to main. 3) CI runs automatically. 4) Monitor dashboards. 5) If errors, rollback with ./rollback.sh. NEW: Always post in #engineering before deploying!';
-        fetch('/api/apps/wiki/wiki-003', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: newContent }),
-        }).then(function() {
-          selectUser('user-junior');
-          document.getElementById('queryInput').value = 'What is the deployment process?';
-          alert('Wiki page "Deployment Runbook" updated. Ask the question to see the change.');
+    function runScenario(num) {
+      var s = scenarios[num];
+      if (!s) return;
+      document.getElementById('chatMessages').innerHTML = '';
+      document.getElementById('demoPanel').style.display = 'none';
+      document.querySelectorAll('.scenario-btns button').forEach(function(b, i) {
+        b.classList.toggle('active', i === num - 1);
+      });
+      document.getElementById('scenarioDesc').innerHTML = '<strong>' + s.title + '</strong><br>' + s.desc;
+      s.setup();
+    }
+
+    function showPermissionChangePanel() {
+      var panel = document.getElementById('demoPanel');
+      panel.style.display = 'block';
+      document.getElementById('demoPanelTitle').textContent = 'Scenario 4: Live Permission Change Controls';
+      document.getElementById('demoPanelContent').innerHTML = '' +
+        '<div style="margin-bottom:10px;font-size:12px;color:#aaa;">Change the Customer Service role and ask the same question to see how the answer changes:</div>' +
+        '<div class="demo-row">' +
+          '<button class="demo-btn-blue" onclick="changeRole(\'user-custservice\',\'security_team\')">a) Add permissions (security_team)</button>' +
+          '<button class="demo-btn-red" onclick="changeRole(\'user-custservice\',\'contractor\')">b) Remove permissions (contractor)</button>' +
+          '<button class="demo-btn-yellow" onclick="changeRole(\'user-custservice\',\'compliance_officer\')">c) Totally change role (compliance)</button>' +
+        '</div>' +
+        '<div class="demo-row" style="margin-top:8px;">' +
+          '<button class="demo-btn-green" onclick="resetPermissions(\'user-custservice\')">Reset to default</button>' +
+          '<button class="demo-btn-green" onclick="resetAll()">Reset ALL demo changes</button>' +
+        '</div>';
+    }
+
+    function changeRole(userId, newRole) {
+      fetch('/api/users/' + userId + '/role', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole }),
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        permChangedUsers.add(userId);
+        renderUserCards();
+        selectUser(userId);
+        addSystemMessage('Role changed: ' + data.message + ' Now ask the same question again to see the answer change.');
+      });
+    }
+
+    function resetPermissions(userId) {
+      fetch('/api/permissions/' + userId + '/reset', { method: 'POST' })
+        .then(function(r) { return r.json(); }).then(function(data) {
+          permChangedUsers.delete(userId);
+          renderUserCards();
+          selectUser(userId);
+          addSystemMessage('Permissions reset for ' + userId + '.');
         });
-      } else if (num === 4) {
-        fetch('/api/permissions/user-junior/slack/channels', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            allowedChannels: ['#general', '#random', '#design'],
-            deniedChannels: ['#engineering', '#security-incidents'],
-          }),
-        }).then(function() {
-          selectUser('user-junior');
-          document.getElementById('queryInput').value = 'What did Sarah say about the login fix?';
-          alert("Junior engineer's access to #engineering has been removed. Ask the question to see the change.");
+    }
+
+    function resetAll() {
+      fetch('/api/reset', { method: 'POST' })
+        .then(function(r) { return r.json(); }).then(function(data) {
+          permChangedUsers.clear();
+          renderUserCards();
+          document.getElementById('chatMessages').innerHTML = '';
+          addSystemMessage('All demo changes reset. Diary cleared, permissions restored to defaults.');
         });
-      }
     }
 
     loadUsers();

@@ -24,7 +24,7 @@
   {
     "id": "jira-003",
     "title": "Database migration to PostgreSQL 15",
-    "description": "Plan and execute migration from PG 13 to PG 15. Need to test all queries, update connection pooling, verify backup/restore procedures. Estimated 2 sprints. Risk: potential downtime if rollback needed.",
+    "description": "Plan and execute migration from PG 13 to PG 15. Need to test all queries, update connection pooling, verify backup/restore procedures. Estimated 2 sprints. Risk: potential downtime if rollback needed. Blocker: replication lag verification needed before production migration.",
     "status": "In Progress",
     "assignee": "Jennifer Park",
     "priority": "P1",
@@ -107,7 +107,7 @@
     "priority": "P3",
     "tags": ["marketing", "email", "onboarding"],
     "restricted": false,
-    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
   },
   {
     "id": "jira-011",

@@ -72,6 +72,7 @@ function searchItems(filteredData, query) {
             status: item.status,
             assignee: item.assignee,
             priority: item.priority,
+            lastUpdated: item.lastUpdated,
           },
           score,
         });

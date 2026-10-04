@@ -13,7 +13,8 @@
       "junior_engineer",
       "contractor",
       "security_team",
-      "compliance_officer"
+      "compliance_officer",
+      "customer_service"
     ]
   },
   {
@@ -35,7 +36,7 @@
   {
     "id": "wiki-003",
     "title": "Deployment Runbook",
-    "content": "To deploy: 1) Run tests. 2) Create PR to main. 3) CI runs automatically. 4) Monitor dashboards. 5) If errors, rollback with ./rollback.sh. NEW: Always post in #engineering before deploying!",
+    "content": "To deploy: 1) Run tests. 2) Create PR to main. 3) CI runs automatically. 4) Monitor dashboards. 5) If errors, rollback with ./rollback.sh. Always post in #engineering before deploying!",
     "tags": [
       "devops",
       "deployment",
@@ -46,7 +47,8 @@
       "junior_engineer",
       "security_team",
       "compliance_officer"
-    ]
+    ],
+    "lastUpdated": "2026-10-04T06:00:00Z"
   },
   {
     "id": "wiki-004",
@@ -93,7 +95,8 @@
       "junior_engineer",
       "contractor",
       "security_team",
-      "compliance_officer"
+      "compliance_officer",
+      "customer_service"
     ]
   },
   {
@@ -111,7 +114,8 @@
       "junior_engineer",
       "contractor",
       "security_team",
-      "compliance_officer"
+      "compliance_officer",
+      "customer_service"
     ]
   },
   {
@@ -160,7 +164,8 @@
       "junior_engineer",
       "contractor",
       "security_team",
-      "compliance_officer"
+      "compliance_officer",
+      "customer_service"
     ]
   },
   {
@@ -177,7 +182,8 @@
       "junior_engineer",
       "contractor",
       "security_team",
-      "compliance_officer"
+      "compliance_officer",
+      "customer_service"
     ]
   },
   {
@@ -225,7 +231,8 @@
       "junior_engineer",
       "contractor",
       "security_team",
-      "compliance_officer"
+      "compliance_officer",
+      "customer_service"
     ]
   },
   {
@@ -240,6 +247,92 @@
     ],
     "restricted": true,
     "allowedRoles": [
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-016",
+    "title": "Payment Service Incident Runbook",
+    "content": "Payment-service incident response runbook. Step 1: Check Stripe dashboard for error rate. Step 2: Verify webhook endpoint is reachable. Step 3: If payment gateway is down, enable circuit breaker and queue payments. Step 4: NEW FAILVER STEP - Failover to backup payment gateway at pg-failover.company.internal if primary is down for more than 5 minutes. Step 5: Post incident status in #engineering. Step 6: Create P0 ticket in Jira. This runbook was updated at 1:00 PM today with the new failover step.",
+    "tags": [
+      "devops",
+      "payments",
+      "incident",
+      "runbook"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "security_team",
+      "compliance_officer"
+    ],
+    "lastUpdated": "2026-10-04T10:44:26.505Z"
+  },
+  {
+    "id": "wiki-017",
+    "title": "Bank Account Information - Customer Records",
+    "content": "Customer bank account details for payment processing. Account: Acme Corp, Bank: DBS Singapore, Account Number: 027-1234567-001, SWIFT: DBSSSGPX. Account: Globex Inc, Bank: OCBC, Account Number: 555-9876543-002, SWIFT: OCBCSGSG. These records contain sensitive PII and are restricted to compliance and security teams only.",
+    "tags": [
+      "finance",
+      "bank",
+      "pii",
+      "sensitive",
+      "secret"
+    ],
+    "restricted": true,
+    "allowedRoles": [
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-018",
+    "title": "Product Requirements Document - Q4 2026",
+    "content": "Product requirements for Q4 2026 release: 1) Real-time collaboration feature with WebSocket sync. 2) AI-powered search across enterprise knowledge. 3) Enterprise SSO with SAML 2.0. 4) Mobile push notifications. 5) Audit trail with tamper-evident logging. Priority: AI search and SSO are P0, others are P1. Target ship date: December 15, 2026.",
+    "tags": [
+      "product",
+      "requirements",
+      "roadmap"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-019",
+    "title": "Customer Service FAQ",
+    "content": "Common customer questions: Q: How do I reset my password? A: Click 'Forgot Password' on the login page. Q: How do I upgrade my plan? A: Go to Settings > Billing > Upgrade. Q: How do I contact support? A: Email support@company.com or use the in-app chat. These are public-facing answers for customer service representatives.",
+    "tags": [
+      "customer",
+      "faq",
+      "general"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "contractor",
+      "security_team",
+      "compliance_officer",
+      "customer_service"
+    ]
+  },
+  {
+    "id": "wiki-020",
+    "title": "Database Migration Project Plan",
+    "content": "Migration from PostgreSQL 13 to 15. Phase 1 (completed): test all queries on PG15 staging. Phase 2 (in progress): update connection pooling and verify backup/restore. Phase 3 (pending): production migration during Saturday maintenance window. Blocker: need to verify replication lag is under 1 minute before proceeding.",
+    "tags": [
+      "engineering",
+      "database",
+      "migration",
+      "project"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
       "security_team",
       "compliance_officer"
     ]

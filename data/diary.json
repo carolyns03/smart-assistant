@@ -2,22 +2,37 @@
   "entries": [
     {
       "index": 0,
-      "timestamp": "2026-10-04T07:53:58.524Z",
-      "userId": "user-junior",
-      "userName": "Alex Kim",
-      "userRole": "junior_engineer",
-      "query": "What is the deployment process?",
-      "answer": "Based on 8 relevant items from Wiki, Jira:\n\n**Bug Triage Process** (Wiki): Bugs are triaged daily at 10am. Severity levels: P0 (site down, fix immediately), P1 (major feature broken, fix within 24h), P2 (minor feature, fix within sprint), P3 (cosmetic, backlog). Use the bug report template in Jira.\n\n**Deployment Runbook** (Wiki): To deploy: 1) Run tests locally. 2) Create a PR to main. 3) After merge, CI runs automatically. 4) Monitor Grafana dashboards for 30 minutes. 5) If errors spike, rollback with ./rollback.sh.\n\n**Refactor authentication middleware** (To Do, P2, assigned to Jennifer Park): Current auth middleware is 500 lines of nested callbacks. Refactor to async/await, add unit tests (target 80% coverage), and extract JWT validation into its own module. No behavior changes.\n\n**Fix intermittent 502 errors on staging** (In Progress, P1, assigned to Sarah Chen): Staging environment returns 502 errors about once an hour. Logs show the Node process is being OOM-killed. Memory profile shows a leak in the websocket connection pool. Need to fix the cleanup logic.\n\n**Company Onboarding Guide** (Wiki): Welcome to the company! This guide covers your first week: setting up your laptop, accessing email, joining Slack channels, and meeting your team. HR will schedule orientation on day one.",
+      "timestamp": "2026-10-04T10:51:54.324Z",
+      "userId": "user-custservice",
+      "userName": "Taylor Wu",
+      "userRole": "security_team",
+      "query": "Show me the bank account information for customers",
+      "answer": "Based on 8 relevant items from Confluence, Jira, Google Drive:\n\n**Bank Account Information - Customer Records** [Confluence]: Customer bank account details for payment processing. Account: Acme Corp, Bank: DBS Singapore, Account Number: 027-1234567-001, SWIFT: DBSSSGPX. Account: Globex Inc, Bank: OCBC, Account Number: 555-9876543-002, SWIFT: OCBCSGSG. These records contain sensitive PII and are restricted to compliance and security teams only.\n\n**Set up monitoring for new payment gateway** [Jira] (Done, P2, assigned to Mike Rodriguez): We're switching to Stripe. Set up Datadog monitors for: payment success rate, webhook latency, refund volume. Create a dashboard for the finance team. Alert on error rate > 1%.\n\n**Implement pagination for search results** [Jira] (To Do, P2, assigned to Sarah Chen): Search currently returns all results at once. For large queries this causes timeouts. Implement cursor-based pagination, 20 results per page. Add metadata for total count and next cursor.\n\n**Update privacy policy for GDPR compliance** [Jira] (To Do, P1, assigned to Lisa Bergstrom): Legal team flagged that our privacy policy doesn't mention the new data processing subprocessor. Need to update the policy page and notify all EU users via email within 30 days.\n\n**Onboarding Checklist for New Hires.pdf** [Google Drive]: Day 1: laptop setup, email, Slack, VPN. Week 1: meet team, codebase access, dev environment setup. Week 2: first small task assigned. 30 days: check-in with manager. 60 days: first PR merged. 90 days: performance review.\n\n**Refactor authentication middleware** [Jira] (To Do, P2, assigned to Jennifer Park): Current auth middleware is 500 lines of nested callbacks. Refactor to async/await, add unit tests (target 80% coverage), and extract JWT validation into its own module. No behavior changes.\n\n**Data Breach Incident Report - September 2026** [Confluence]: On Sept 14, we detected unauthorized access to the user database. Approximately 8,000 user records including emails and hashed passwords were exfiltrated. Root cause: misconfigured S3 bucket. Remediation: bucket secured, passwords force-reset, authorities notified. Post-mortem attached.\n\n**VPN Setup Instructions** [Confluence]: Download the VPN client from the IT portal. Use your SSO credentials. Connect to vpn.company.internal. If you get certificate errors, contact IT support. VPN is required for accessing internal systems remotely.",
       "sources": [
         {
           "app": "wiki",
-          "id": "wiki-013",
-          "title": "Bug Triage Process"
+          "id": "wiki-017",
+          "title": "Bank Account Information - Customer Records"
         },
         {
-          "app": "wiki",
-          "id": "wiki-003",
-          "title": "Deployment Runbook"
+          "app": "jira",
+          "id": "jira-007",
+          "title": "Set up monitoring for new payment gateway"
+        },
+        {
+          "app": "jira",
+          "id": "jira-005",
+          "title": "Implement pagination for search results"
+        },
+        {
+          "app": "jira",
+          "id": "jira-006",
+          "title": "Update privacy policy for GDPR compliance"
+        },
+        {
+          "app": "drive",
+          "id": "drive-011",
+          "title": "Onboarding Checklist for New Hires.pdf"
         },
         {
           "app": "jira",
@@ -25,72 +40,51 @@
           "title": "Refactor authentication middleware"
         },
         {
-          "app": "jira",
-          "id": "jira-011",
-          "title": "Fix intermittent 502 errors on staging"
-        },
-        {
           "app": "wiki",
-          "id": "wiki-001",
-          "title": "Company Onboarding Guide"
+          "id": "wiki-005",
+          "title": "Data Breach Incident Report - September 2026"
         },
         {
           "app": "wiki",
           "id": "wiki-007",
           "title": "VPN Setup Instructions"
-        },
-        {
-          "app": "wiki",
-          "id": "wiki-011",
-          "title": "Brand Guidelines"
-        },
-        {
-          "app": "jira",
-          "id": "jira-001",
-          "title": "Fix login page crash on Safari 16"
         }
       ],
+      "platforms": [
+        "Confluence",
+        "Jira",
+        "Google Drive"
+      ],
+      "freshness": null,
       "stats": {
-        "total": 60,
-        "visible": 39,
-        "hidden": 21
+        "total": 66,
+        "visible": 66,
+        "hidden": 0
+      },
+      "hiddenItems": [],
+      "authorization": {
+        "decision": "ALLOWED",
+        "method": "RBAC + channel-based filtering",
+        "filteredBeforeLLM": true,
+        "visibleItems": 66,
+        "hiddenItems": 0
       },
       "previousFingerprint": null,
-      "fingerprint": "9c47fc96ebfe52e15840ac1a21f08de2afaf8dcc2b85cf70a885d44c462f8649"
+      "fingerprint": "249efe7668e16a5619aad006c58689e2f2d3ab72d1a71154333f75a8e846a10a"
     },
     {
       "index": 1,
-      "timestamp": "2026-10-04T08:46:48.283Z",
-      "userId": "user-junior",
-      "userName": "Alex Kim",
-      "userRole": "junior_engineer",
-      "query": "What is the deployment process?",
-      "answer": "Based on 8 relevant items from Wiki, Jira:\n\n**Bug Triage Process** (Wiki): Bugs are triaged daily at 10am. Severity levels: P0 (site down, fix immediately), P1 (major feature broken, fix within 24h), P2 (minor feature, fix within sprint), P3 (cosmetic, backlog). Use the bug report template in Jira.\n\n**Deployment Runbook** (Wiki): To deploy: 1) Run tests locally. 2) Create a PR to main. 3) After merge, CI runs automatically. 4) Monitor Grafana dashboards for 30 minutes. 5) If errors spike, rollback with ./rollback.sh.\n\n**Refactor authentication middleware** (To Do, P2, assigned to Jennifer Park): Current auth middleware is 500 lines of nested callbacks. Refactor to async/await, add unit tests (target 80% coverage), and extract JWT validation into its own module. No behavior changes.\n\n**Fix intermittent 502 errors on staging** (In Progress, P1, assigned to Sarah Chen): Staging environment returns 502 errors about once an hour. Logs show the Node process is being OOM-killed. Memory profile shows a leak in the websocket connection pool. Need to fix the cleanup logic.\n\n**Company Onboarding Guide** (Wiki): Welcome to the company! This guide covers your first week: setting up your laptop, accessing email, joining Slack channels, and meeting your team. HR will schedule orientation on day one.",
+      "timestamp": "2026-10-04T10:52:51.317Z",
+      "userId": "user-custservice",
+      "userName": "Taylor Wu",
+      "userRole": "contractor",
+      "query": "Show me the bank account information for customers",
+      "answer": "Based on 8 relevant items from Google Drive, Confluence, Slack:\n\n**Onboarding Checklist for New Hires.pdf** [Google Drive]: Day 1: laptop setup, email, Slack, VPN. Week 1: meet team, codebase access, dev environment setup. Week 2: first small task assigned. 30 days: check-in with manager. 60 days: first PR merged. 90 days: performance review.\n\n**VPN Setup Instructions** [Confluence]: Download the VPN client from the IT portal. Use your SSO credentials. Connect to vpn.company.internal. If you get certificate errors, contact IT support. VPN is required for accessing internal systems remotely.\n\n**Brand Guidelines** [Confluence]: Logo colors: primary #1A73E8, secondary #FF6D00. Font: Inter for all materials. Logo must have minimum clear space equal to the height of the 'o' in the logo. Never stretch or recolor the logo.\n\n**Customer Service FAQ** [Confluence]: Common customer questions: Q: How do I reset my password? A: Click 'Forgot Password' on the login page. Q: How do I upgrade my plan? A: Go to Settings > Billing > Upgrade. Q: How do I contact support? A: Email support@company.com or use the in-app chat. These are public-facing answers for customer service representatives.\n\n**##random** [Slack] — Mike Rodriguez said: \"Someone left a cake in the kitchen. It says 'Sorry for the 502s'. I think the staging server is apologizing.\"\n\n**##design** [Slack] — Lisa Bergstrom said: \"New brand assets are uploaded to the shared drive. Please use the updated logo files going forward. The old logo had incorrect spacing. Design tokens are also updated in Figma.\"\n\n**##general** [Slack] — HR Bot said: \"Don't forget: flu shot clinic on Wednesday in the 2nd floor conference room. Free for all employees. Sign up at the HR portal. Walk-ins welcome too!\"\n\n**Company Onboarding Guide** [Confluence]: Welcome to the company! This guide covers your first week: setting up your laptop, accessing email, joining Slack channels, and meeting your team. HR will schedule orientation on day one.",
       "sources": [
         {
-          "app": "wiki",
-          "id": "wiki-013",
-          "title": "Bug Triage Process"
-        },
-        {
-          "app": "wiki",
-          "id": "wiki-003",
-          "title": "Deployment Runbook"
-        },
-        {
-          "app": "jira",
-          "id": "jira-009",
-          "title": "Refactor authentication middleware"
-        },
-        {
-          "app": "jira",
-          "id": "jira-011",
-          "title": "Fix intermittent 502 errors on staging"
-        },
-        {
-          "app": "wiki",
-          "id": "wiki-001",
-          "title": "Company Onboarding Guide"
+          "app": "drive",
+          "id": "drive-011",
+          "title": "Onboarding Checklist for New Hires.pdf"
         },
         {
           "app": "wiki",
@@ -103,28 +97,380 @@
           "title": "Brand Guidelines"
         },
         {
+          "app": "wiki",
+          "id": "wiki-019",
+          "title": "Customer Service FAQ"
+        },
+        {
+          "app": "slack",
+          "id": "slack-005"
+        },
+        {
+          "app": "slack",
+          "id": "slack-010"
+        },
+        {
+          "app": "slack",
+          "id": "slack-013"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-001",
+          "title": "Company Onboarding Guide"
+        }
+      ],
+      "platforms": [
+        "Google Drive",
+        "Confluence",
+        "Slack"
+      ],
+      "freshness": null,
+      "stats": {
+        "total": 66,
+        "visible": 19,
+        "hidden": 47
+      },
+      "hiddenItems": [
+        {
+          "app": "wiki",
+          "id": "wiki-002",
+          "title": "Engineering Coding Standards"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-003",
+          "title": "Deployment Runbook"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-004",
+          "title": "Quarterly Business Review Q3 2026"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-005",
+          "title": "Data Breach Incident Report - September 2026"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-008",
+          "title": "API Rate Limiting Policy"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-009",
+          "title": "Security Incident Response Plan"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-012",
+          "title": "Vendor Contract Template"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-013",
+          "title": "Bug Triage Process"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-015",
+          "title": "Disaster Recovery Plan"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-016",
+          "title": "Payment Service Incident Runbook"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-017",
+          "title": "Bank Account Information - Customer Records"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-018",
+          "title": "Product Requirements Document - Q4 2026"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-020",
+          "title": "Database Migration Project Plan"
+        },
+        {
           "app": "jira",
           "id": "jira-001",
           "title": "Fix login page crash on Safari 16"
+        },
+        {
+          "app": "jira",
+          "id": "jira-002",
+          "title": "Add dark mode to dashboard"
+        },
+        {
+          "app": "jira",
+          "id": "jira-003",
+          "title": "Database migration to PostgreSQL 15"
+        },
+        {
+          "app": "jira",
+          "id": "jira-004",
+          "title": "Security audit: review S3 bucket permissions"
+        },
+        {
+          "app": "jira",
+          "id": "jira-005",
+          "title": "Implement pagination for search results"
+        },
+        {
+          "app": "jira",
+          "id": "jira-006",
+          "title": "Update privacy policy for GDPR compliance"
+        },
+        {
+          "app": "jira",
+          "id": "jira-007",
+          "title": "Set up monitoring for new payment gateway"
+        },
+        {
+          "app": "jira",
+          "id": "jira-008",
+          "title": "Investigate anomaly in API traffic from IP 203.0.113.45"
+        },
+        {
+          "app": "jira",
+          "id": "jira-009",
+          "title": "Refactor authentication middleware"
+        },
+        {
+          "app": "jira",
+          "id": "jira-011",
+          "title": "Fix intermittent 502 errors on staging"
+        },
+        {
+          "app": "jira",
+          "id": "jira-012",
+          "title": "Penetration test results - October 2026"
+        },
+        {
+          "app": "jira",
+          "id": "jira-013",
+          "title": "Mobile app push notification setup"
+        },
+        {
+          "app": "jira",
+          "id": "jira-014",
+          "title": "Data retention policy implementation"
+        },
+        {
+          "app": "jira",
+          "id": "jira-015",
+          "title": "Upgrade Node.js to v20 LTS"
+        },
+        {
+          "app": "slack",
+          "id": "slack-002",
+          "title": "#engineering"
+        },
+        {
+          "app": "slack",
+          "id": "slack-003",
+          "title": "#engineering"
+        },
+        {
+          "app": "slack",
+          "id": "slack-004",
+          "title": "#security-incidents"
+        },
+        {
+          "app": "slack",
+          "id": "slack-007",
+          "title": "#engineering"
+        },
+        {
+          "app": "slack",
+          "id": "slack-008",
+          "title": "#security-incidents"
+        },
+        {
+          "app": "slack",
+          "id": "slack-011",
+          "title": "#security-incidents"
+        },
+        {
+          "app": "slack",
+          "id": "slack-012",
+          "title": "#engineering"
+        },
+        {
+          "app": "slack",
+          "id": "slack-014",
+          "title": "#engineering"
+        },
+        {
+          "app": "slack",
+          "id": "slack-016",
+          "title": "#engineering"
+        },
+        {
+          "app": "drive",
+          "id": "drive-001",
+          "title": "Q3 2026 Financial Report.xlsx"
+        },
+        {
+          "app": "drive",
+          "id": "drive-002",
+          "title": "Engineering Org Chart.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-003",
+          "title": "Product Roadmap 2026 H2.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-004",
+          "title": "Security Posture Assessment.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-007",
+          "title": "Customer Churn Analysis.xlsx"
+        },
+        {
+          "app": "drive",
+          "id": "drive-008",
+          "title": "API Documentation v2.md"
+        },
+        {
+          "app": "drive",
+          "id": "drive-009",
+          "title": "Incident Response Playbook.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-010",
+          "title": "Board Meeting Deck - September 2026.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-012",
+          "title": "Penetration Test Report October 2026.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-013",
+          "title": "Vendor Master Service Agreement.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-014",
+          "title": "SOC 2 Compliance Checklist.xlsx"
         }
       ],
-      "stats": {
-        "total": 60,
-        "visible": 39,
-        "hidden": 21
+      "authorization": {
+        "decision": "ALLOWED",
+        "method": "RBAC + channel-based filtering",
+        "filteredBeforeLLM": true,
+        "visibleItems": 19,
+        "hiddenItems": 47
       },
-      "previousFingerprint": "9c47fc96ebfe52e15840ac1a21f08de2afaf8dcc2b85cf70a885d44c462f8649",
-      "fingerprint": "201a34ae533253e10e6f824109a317abcfcc73e834049176080a862b035c2f41"
+      "previousFingerprint": "249efe7668e16a5619aad006c58689e2f2d3ab72d1a71154333f75a8e846a10a",
+      "fingerprint": "0b5e1ec40b0a021a9b8c954d3f237e2a29f9ccd9d00b85f00eeb83ade7db4bb8"
     },
     {
       "index": 2,
-      "timestamp": "2026-10-04T09:29:43.730Z",
-      "userId": "user-junior",
-      "userName": "Alex Kim",
-      "userRole": "junior_engineer",
-      "query": "What is the deployment process?",
-      "answer": "Based on 8 relevant items from Wiki, Jira:\n\n**Bug Triage Process** (Wiki): Bugs are triaged daily at 10am. Severity levels: P0 (site down, fix immediately), P1 (major feature broken, fix within 24h), P2 (minor feature, fix within sprint), P3 (cosmetic, backlog). Use the bug report template in Jira.\n\n**Deployment Runbook** (Wiki): To deploy: 1) Run tests. 2) Create PR to main. 3) CI runs automatically. 4) Monitor dashboards. 5) If errors, rollback with ./rollback.sh. NEW: Always post in #engineering before deploying!\n\n**Refactor authentication middleware** (To Do, P2, assigned to Jennifer Park): Current auth middleware is 500 lines of nested callbacks. Refactor to async/await, add unit tests (target 80% coverage), and extract JWT validation into its own module. No behavior changes.\n\n**Fix intermittent 502 errors on staging** (In Progress, P1, assigned to Sarah Chen): Staging environment returns 502 errors about once an hour. Logs show the Node process is being OOM-killed. Memory profile shows a leak in the websocket connection pool. Need to fix the cleanup logic.\n\n**Company Onboarding Guide** (Wiki): Welcome to the company! This guide covers your first week: setting up your laptop, accessing email, joining Slack channels, and meeting your team. HR will schedule orientation on day one.",
+      "timestamp": "2026-10-04T10:54:58.278Z",
+      "userId": "user-contractor",
+      "userName": "Jordan Lee",
+      "userRole": "contractor",
+      "query": "What's the status of the database migration project and were there any blockers raised in Slack last week?",
+      "answer": "Based on 8 relevant items from Confluence, Google Drive, Slack:\n\n**Company Onboarding Guide** [Confluence]: Welcome to the company! This guide covers your first week: setting up your laptop, accessing email, joining Slack channels, and meeting your team. HR will schedule orientation on day one.\n\n**Brand Assets 2026.zip** [Google Drive]: Contains: logo files (SVG, PNG, various sizes), brand color palette, font files (Inter), icon set, presentation templates, email signature template. Use the updated logo with correct spacing.\n\n**Brand Guidelines** [Confluence]: Logo colors: primary #1A73E8, secondary #FF6D00. Font: Inter for all materials. Logo must have minimum clear space equal to the height of the 'o' in the logo. Never stretch or recolor the logo.\n\n**Employee Handbook** [Confluence]: Covers: code of conduct, anti-harassment policy, remote work policy (up to 3 days/week), PTO accrual (15 days/year for years 1-3), benefits overview, grievance procedure, at-will employment terms.\n\n**##random** [Slack] — Mike Rodriguez said: \"Someone left a cake in the kitchen. It says 'Sorry for the 502s'. I think the staging server is apologizing.\"\n\n**##design** [Slack] — Lisa Bergstrom said: \"New brand assets are uploaded to the shared drive. Please use the updated logo files going forward. The old logo had incorrect spacing. Design tokens are also updated in Figma.\"\n\n**##general** [Slack] — CEO Rachel said: \"Quick reminder: please fill out the employee engagement survey by end of next week. Your feedback shapes our culture initiatives. It's anonymous and takes 5 minutes. Link in the HR portal.\"\n\n**VPN Setup Instructions** [Confluence]: Download the VPN client from the IT portal. Use your SSO credentials. Connect to vpn.company.internal. If you get certificate errors, contact IT support. VPN is required for accessing internal systems remotely.",
       "sources": [
+        {
+          "app": "wiki",
+          "id": "wiki-001",
+          "title": "Company Onboarding Guide"
+        },
+        {
+          "app": "drive",
+          "id": "drive-005",
+          "title": "Brand Assets 2026.zip"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-011",
+          "title": "Brand Guidelines"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-014",
+          "title": "Employee Handbook"
+        },
+        {
+          "app": "slack",
+          "id": "slack-005"
+        },
+        {
+          "app": "slack",
+          "id": "slack-010"
+        },
+        {
+          "app": "slack",
+          "id": "slack-015"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-007",
+          "title": "VPN Setup Instructions"
+        }
+      ],
+      "platforms": [
+        "Confluence",
+        "Google Drive",
+        "Slack"
+      ],
+      "freshness": null,
+      "stats": {
+        "total": 66,
+        "visible": 19,
+        "hidden": 47
+      },
+      "hiddenItems": [
+        {
+          "app": "wiki",
+          "id": "wiki-002",
+          "title": "Engineering Coding Standards"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-003",
+          "title": "Deployment Runbook"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-004",
+          "title": "Quarterly Business Review Q3 2026"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-005",
+          "title": "Data Breach Incident Report - September 2026"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-008",
+          "title": "API Rate Limiting Policy"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-009",
+          "title": "Security Incident Response Plan"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-012",
+          "title": "Vendor Contract Template"
+        },
         {
           "app": "wiki",
           "id": "wiki-013",
@@ -132,8 +478,68 @@
         },
         {
           "app": "wiki",
-          "id": "wiki-003",
-          "title": "Deployment Runbook"
+          "id": "wiki-015",
+          "title": "Disaster Recovery Plan"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-016",
+          "title": "Payment Service Incident Runbook"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-017",
+          "title": "Bank Account Information - Customer Records"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-018",
+          "title": "Product Requirements Document - Q4 2026"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-020",
+          "title": "Database Migration Project Plan"
+        },
+        {
+          "app": "jira",
+          "id": "jira-001",
+          "title": "Fix login page crash on Safari 16"
+        },
+        {
+          "app": "jira",
+          "id": "jira-002",
+          "title": "Add dark mode to dashboard"
+        },
+        {
+          "app": "jira",
+          "id": "jira-003",
+          "title": "Database migration to PostgreSQL 15"
+        },
+        {
+          "app": "jira",
+          "id": "jira-004",
+          "title": "Security audit: review S3 bucket permissions"
+        },
+        {
+          "app": "jira",
+          "id": "jira-005",
+          "title": "Implement pagination for search results"
+        },
+        {
+          "app": "jira",
+          "id": "jira-006",
+          "title": "Update privacy policy for GDPR compliance"
+        },
+        {
+          "app": "jira",
+          "id": "jira-007",
+          "title": "Set up monitoring for new payment gateway"
+        },
+        {
+          "app": "jira",
+          "id": "jira-008",
+          "title": "Investigate anomaly in API traffic from IP 203.0.113.45"
         },
         {
           "app": "jira",
@@ -146,33 +552,135 @@
           "title": "Fix intermittent 502 errors on staging"
         },
         {
-          "app": "wiki",
-          "id": "wiki-001",
-          "title": "Company Onboarding Guide"
-        },
-        {
-          "app": "wiki",
-          "id": "wiki-007",
-          "title": "VPN Setup Instructions"
-        },
-        {
-          "app": "wiki",
-          "id": "wiki-011",
-          "title": "Brand Guidelines"
+          "app": "jira",
+          "id": "jira-012",
+          "title": "Penetration test results - October 2026"
         },
         {
           "app": "jira",
-          "id": "jira-001",
-          "title": "Fix login page crash on Safari 16"
+          "id": "jira-013",
+          "title": "Mobile app push notification setup"
+        },
+        {
+          "app": "jira",
+          "id": "jira-014",
+          "title": "Data retention policy implementation"
+        },
+        {
+          "app": "jira",
+          "id": "jira-015",
+          "title": "Upgrade Node.js to v20 LTS"
+        },
+        {
+          "app": "slack",
+          "id": "slack-002",
+          "title": "#engineering"
+        },
+        {
+          "app": "slack",
+          "id": "slack-003",
+          "title": "#engineering"
+        },
+        {
+          "app": "slack",
+          "id": "slack-004",
+          "title": "#security-incidents"
+        },
+        {
+          "app": "slack",
+          "id": "slack-007",
+          "title": "#engineering"
+        },
+        {
+          "app": "slack",
+          "id": "slack-008",
+          "title": "#security-incidents"
+        },
+        {
+          "app": "slack",
+          "id": "slack-011",
+          "title": "#security-incidents"
+        },
+        {
+          "app": "slack",
+          "id": "slack-012",
+          "title": "#engineering"
+        },
+        {
+          "app": "slack",
+          "id": "slack-014",
+          "title": "#engineering"
+        },
+        {
+          "app": "slack",
+          "id": "slack-016",
+          "title": "#engineering"
+        },
+        {
+          "app": "drive",
+          "id": "drive-001",
+          "title": "Q3 2026 Financial Report.xlsx"
+        },
+        {
+          "app": "drive",
+          "id": "drive-002",
+          "title": "Engineering Org Chart.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-003",
+          "title": "Product Roadmap 2026 H2.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-004",
+          "title": "Security Posture Assessment.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-007",
+          "title": "Customer Churn Analysis.xlsx"
+        },
+        {
+          "app": "drive",
+          "id": "drive-008",
+          "title": "API Documentation v2.md"
+        },
+        {
+          "app": "drive",
+          "id": "drive-009",
+          "title": "Incident Response Playbook.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-010",
+          "title": "Board Meeting Deck - September 2026.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-012",
+          "title": "Penetration Test Report October 2026.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-013",
+          "title": "Vendor Master Service Agreement.pdf"
+        },
+        {
+          "app": "drive",
+          "id": "drive-014",
+          "title": "SOC 2 Compliance Checklist.xlsx"
         }
       ],
-      "stats": {
-        "total": 60,
-        "visible": 39,
-        "hidden": 21
+      "authorization": {
+        "decision": "ALLOWED",
+        "method": "RBAC + channel-based filtering",
+        "filteredBeforeLLM": true,
+        "visibleItems": 19,
+        "hiddenItems": 47
       },
-      "previousFingerprint": "201a34ae533253e10e6f824109a317abcfcc73e834049176080a862b035c2f41",
-      "fingerprint": "a6908edbae7e2e40b4c849e5a8c7a0fa45576d149e0257c699c430e42d004f7d"
+      "previousFingerprint": "0b5e1ec40b0a021a9b8c954d3f237e2a29f9ccd9d00b85f00eeb83ade7db4bb8",
+      "fingerprint": "ccb8de08c5796f6c7a5c1b95b2a98ede12bcf7baed797000739a4e0cd4b7c8ef"
     }
   ]
 }

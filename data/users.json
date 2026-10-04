@@ -2,18 +2,67 @@
   {
     "id": "user-junior",
     "name": "Alex Kim",
-    "title": "Junior Engineer",
+    "title": "Backend Engineer",
     "role": "junior_engineer",
-    "description": "A junior engineer who sees normal engineering and general content. Has access to most non-secret items but cannot view security incident channels or business/financial reports.",
+    "description": "A backend engineer who sees normal engineering and general content. Has access to most non-secret items but cannot view security incident channels or business/financial reports.",
     "permissions": {
-      "wiki": { "access": "role-based", "deniedItems": [] },
-      "jira": { "access": "role-based", "deniedItems": [] },
-      "slack": { 
-        "access": "channel-based",
-        "allowedChannels": ["#general", "#engineering", "#random", "#design"],
-        "deniedChannels": ["#security-incidents"]
+      "wiki": {
+        "access": "role-based",
+        "deniedItems": []
       },
-      "drive": { "access": "role-based", "deniedItems": [] }
+      "jira": {
+        "access": "role-based",
+        "deniedItems": []
+      },
+      "slack": {
+        "access": "channel-based",
+        "allowedChannels": [
+          "#general",
+          "#engineering",
+          "#random",
+          "#design"
+        ],
+        "deniedChannels": [
+          "#security-incidents"
+        ]
+      },
+      "drive": {
+        "access": "role-based",
+        "deniedItems": []
+      }
+    }
+  },
+  {
+    "id": "user-oncall",
+    "name": "Jennifer Park",
+    "title": "On-Call Engineer",
+    "role": "junior_engineer",
+    "description": "An on-call engineer who needs the latest runbooks and incident info during outages. Has the same access as the backend engineer.",
+    "permissions": {
+      "wiki": {
+        "access": "role-based",
+        "deniedItems": []
+      },
+      "jira": {
+        "access": "role-based",
+        "deniedItems": []
+      },
+      "slack": {
+        "access": "channel-based",
+        "allowedChannels": [
+          "#general",
+          "#engineering",
+          "#random",
+          "#design"
+        ],
+        "deniedChannels": [
+          "#security-incidents"
+        ]
+      },
+      "drive": {
+        "access": "role-based",
+        "deniedItems": []
+      }
     }
   },
   {
@@ -23,14 +72,63 @@
     "role": "contractor",
     "description": "An outside contractor who sees very little. Only has access to general/onboarding content, the random channel, and brand assets. Cannot see engineering, business, or security items.",
     "permissions": {
-      "wiki": { "access": "role-based", "deniedItems": [] },
-      "jira": { "access": "role-based", "deniedItems": [] },
-      "slack": { 
-        "access": "channel-based",
-        "allowedChannels": ["#general", "#random", "#design"],
-        "deniedChannels": ["#engineering", "#security-incidents"]
+      "wiki": {
+        "access": "role-based",
+        "deniedItems": []
       },
-      "drive": { "access": "role-based", "deniedItems": [] }
+      "jira": {
+        "access": "role-based",
+        "deniedItems": []
+      },
+      "slack": {
+        "access": "channel-based",
+        "allowedChannels": [
+          "#general",
+          "#random",
+          "#design"
+        ],
+        "deniedChannels": [
+          "#engineering",
+          "#security-incidents"
+        ]
+      },
+      "drive": {
+        "access": "role-based",
+        "deniedItems": []
+      }
+    }
+  },
+  {
+    "id": "user-custservice",
+    "name": "Taylor Wu",
+    "title": "Customer Service",
+    "role": "contractor",
+    "description": "A customer service representative who handles customer inquiries. Has access to general content and customer-facing docs but should NOT see sensitive PII like bank account details.",
+    "permissions": {
+      "wiki": {
+        "access": "role-based",
+        "deniedItems": []
+      },
+      "jira": {
+        "access": "role-based",
+        "deniedItems": []
+      },
+      "slack": {
+        "access": "channel-based",
+        "allowedChannels": [
+          "#general",
+          "#random",
+          "#design"
+        ],
+        "deniedChannels": [
+          "#engineering",
+          "#security-incidents"
+        ]
+      },
+      "drive": {
+        "access": "role-based",
+        "deniedItems": []
+      }
     }
   },
   {
@@ -40,14 +138,29 @@
     "role": "security_team",
     "description": "A security team member who sees everything including secret items like breach reports, incident responses, and penetration test results.",
     "permissions": {
-      "wiki": { "access": "role-based", "deniedItems": [] },
-      "jira": { "access": "role-based", "deniedItems": [] },
-      "slack": { 
+      "wiki": {
+        "access": "role-based",
+        "deniedItems": []
+      },
+      "jira": {
+        "access": "role-based",
+        "deniedItems": []
+      },
+      "slack": {
         "access": "channel-based",
-        "allowedChannels": ["#general", "#engineering", "#random", "#design", "#security-incidents"],
+        "allowedChannels": [
+          "#general",
+          "#engineering",
+          "#random",
+          "#design",
+          "#security-incidents"
+        ],
         "deniedChannels": []
       },
-      "drive": { "access": "role-based", "deniedItems": [] }
+      "drive": {
+        "access": "role-based",
+        "deniedItems": []
+      }
     }
   },
   {
@@ -55,17 +168,34 @@
     "name": "Lisa Bergstrom",
     "title": "Compliance Officer",
     "role": "compliance_officer",
-    "description": "A compliance officer who sees everything the security team sees, plus can access the audit diary. Checks the diary for tampering and ensures all access is logged.",
+    "description": "A compliance officer who sees everything the security team sees, plus can access the audit diary. Checks the diary for tampering and ensures all access is logged. Can reconstruct what any user asked, what was retrieved, and what was answered.",
     "permissions": {
-      "wiki": { "access": "role-based", "deniedItems": [] },
-      "jira": { "access": "role-based", "deniedItems": [] },
-      "slack": { 
+      "wiki": {
+        "access": "role-based",
+        "deniedItems": []
+      },
+      "jira": {
+        "access": "role-based",
+        "deniedItems": []
+      },
+      "slack": {
         "access": "channel-based",
-        "allowedChannels": ["#general", "#engineering", "#random", "#design", "#security-incidents"],
+        "allowedChannels": [
+          "#general",
+          "#engineering",
+          "#random",
+          "#design",
+          "#security-incidents"
+        ],
         "deniedChannels": []
       },
-      "drive": { "access": "role-based", "deniedItems": [] },
-      "diary": { "access": "full" }
+      "drive": {
+        "access": "role-based",
+        "deniedItems": []
+      },
+      "diary": {
+        "access": "full"
+      }
     }
   }
 ]

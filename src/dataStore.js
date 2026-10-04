@@ -69,5 +69,6 @@ module.exports = {
   savePermissions,
   loadAppData,
   updateAppItem,
+  loadJson,
   DATA_DIR,
 };

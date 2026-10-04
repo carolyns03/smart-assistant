@@ -7,7 +7,7 @@
     "content": "Good morning team! Reminder: all-hands meeting this Friday at 2pm. We'll be covering Q3 results and Q4 plans. Please submit your team updates by Thursday EOD.",
     "tags": ["announcement", "general"],
     "restricted": false,
-    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
   },
   {
     "id": "slack-002",
@@ -44,10 +44,10 @@
     "channel": "#random",
     "author": "Mike Rodriguez",
     "timestamp": "2026-10-01T11:45:00Z",
-    "content": "Someone left a cake in the kitchen. It says 'Sorry for the 502s'. I think the staging server is apologizing 😄",
+    "content": "Someone left a cake in the kitchen. It says 'Sorry for the 502s'. I think the staging server is apologizing.",
     "tags": ["social", "random"],
     "restricted": false,
-    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
   },
   {
     "id": "slack-006",
@@ -57,7 +57,7 @@
     "content": "Open enrollment starts October 15! Review your benefits at benefits.company.internal. Changes must be submitted by October 31. Questions? Come to the HR office hours on Wednesday.",
     "tags": ["hr", "benefits", "general"],
     "restricted": false,
-    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
   },
   {
     "id": "slack-007",
@@ -87,7 +87,7 @@
     "content": "Great work everyone on closing Q3! We hit 112% of our revenue target. The Acme Corp deal was a game-changer. Let's keep the momentum going in Q4. Details Friday at all-hands.",
     "tags": ["announcement", "business", "general"],
     "restricted": false,
-    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
   },
   {
     "id": "slack-010",
@@ -97,7 +97,7 @@
     "content": "New brand assets are uploaded to the shared drive. Please use the updated logo files going forward. The old logo had incorrect spacing. Design tokens are also updated in Figma.",
     "tags": ["design", "brand", "assets"],
     "restricted": false,
-    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
   },
   {
     "id": "slack-011",
@@ -127,7 +127,7 @@
     "content": "Don't forget: flu shot clinic on Wednesday in the 2nd floor conference room. Free for all employees. Sign up at the HR portal. Walk-ins welcome too!",
     "tags": ["hr", "wellness", "general"],
     "restricted": false,
-    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
   },
   {
     "id": "slack-014",
@@ -147,6 +147,16 @@
     "content": "Quick reminder: please fill out the employee engagement survey by end of next week. Your feedback shapes our culture initiatives. It's anonymous and takes 5 minutes. Link in the HR portal.",
     "tags": ["hr", "survey", "general"],
     "restricted": false,
-    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
+  },
+  {
+    "id": "slack-016",
+    "channel": "#engineering",
+    "author": "Jennifer Park",
+    "timestamp": "2026-10-04T12:50:00Z",
+    "content": "Payment service is having intermittent errors! Error rate jumped to 3%. Investigating now. If anyone has the latest runbook, please share it.",
+    "tags": ["engineering", "payments", "incident"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
   }
 ]
