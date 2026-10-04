@@ -1,0 +1,13 @@
+{
+  "name": "smart-assistant-mvp",
+  "version": "1.0.0",
+  "description": "Smart assistant MVP with per-user access filtering and tamper-proof audit diary",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "entries": [
+    {
+      "index": 0,
+      "timestamp": "2026-10-04T07:53:58.524Z",
+      "userId": "user-junior",
+      "userName": "Alex Kim",
+      "userRole": "junior_engineer",
+      "query": "What is the deployment process?",
+      "answer": "Based on 8 relevant items from Wiki, Jira:\n\n**Bug Triage Process** (Wiki): Bugs are triaged daily at 10am. Severity levels: P0 (site down, fix immediately), P1 (major feature broken, fix within 24h), P2 (minor feature, fix within sprint), P3 (cosmetic, backlog). Use the bug report template in Jira.\n\n**Deployment Runbook** (Wiki): To deploy: 1) Run tests locally. 2) Create a PR to main. 3) After merge, CI runs automatically. 4) Monitor Grafana dashboards for 30 minutes. 5) If errors spike, rollback with ./rollback.sh.\n\n**Refactor authentication middleware** (To Do, P2, assigned to Jennifer Park): Current auth middleware is 500 lines of nested callbacks. Refactor to async/await, add unit tests (target 80% coverage), and extract JWT validation into its own module. No behavior changes.\n\n**Fix intermittent 502 errors on staging** (In Progress, P1, assigned to Sarah Chen): Staging environment returns 502 errors about once an hour. Logs show the Node process is being OOM-killed. Memory profile shows a leak in the websocket connection pool. Need to fix the cleanup logic.\n\n**Company Onboarding Guide** (Wiki): Welcome to the company! This guide covers your first week: setting up your laptop, accessing email, joining Slack channels, and meeting your team. HR will schedule orientation on day one.",
+      "sources": [
+        {
+          "app": "wiki",
+          "id": "wiki-013",
+          "title": "Bug Triage Process"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-003",
+          "title": "Deployment Runbook"
+        },
+        {
+          "app": "jira",
+          "id": "jira-009",
+          "title": "Refactor authentication middleware"
+        },
+        {
+          "app": "jira",
+          "id": "jira-011",
+          "title": "Fix intermittent 502 errors on staging"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-001",
+          "title": "Company Onboarding Guide"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-007",
+          "title": "VPN Setup Instructions"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-011",
+          "title": "Brand Guidelines"
+        },
+        {
+          "app": "jira",
+          "id": "jira-001",
+          "title": "Fix login page crash on Safari 16"
+        }
+      ],
+      "stats": {
+        "total": 60,
+        "visible": 39,
+        "hidden": 21
+      },
+      "previousFingerprint": null,
+      "fingerprint": "9c47fc96ebfe52e15840ac1a21f08de2afaf8dcc2b85cf70a885d44c462f8649"
+    },
+    {
+      "index": 1,
+      "timestamp": "2026-10-04T08:46:48.283Z",
+      "userId": "user-junior",
+      "userName": "Alex Kim",
+      "userRole": "junior_engineer",
+      "query": "What is the deployment process?",
+      "answer": "Based on 8 relevant items from Wiki, Jira:\n\n**Bug Triage Process** (Wiki): Bugs are triaged daily at 10am. Severity levels: P0 (site down, fix immediately), P1 (major feature broken, fix within 24h), P2 (minor feature, fix within sprint), P3 (cosmetic, backlog). Use the bug report template in Jira.\n\n**Deployment Runbook** (Wiki): To deploy: 1) Run tests locally. 2) Create a PR to main. 3) After merge, CI runs automatically. 4) Monitor Grafana dashboards for 30 minutes. 5) If errors spike, rollback with ./rollback.sh.\n\n**Refactor authentication middleware** (To Do, P2, assigned to Jennifer Park): Current auth middleware is 500 lines of nested callbacks. Refactor to async/await, add unit tests (target 80% coverage), and extract JWT validation into its own module. No behavior changes.\n\n**Fix intermittent 502 errors on staging** (In Progress, P1, assigned to Sarah Chen): Staging environment returns 502 errors about once an hour. Logs show the Node process is being OOM-killed. Memory profile shows a leak in the websocket connection pool. Need to fix the cleanup logic.\n\n**Company Onboarding Guide** (Wiki): Welcome to the company! This guide covers your first week: setting up your laptop, accessing email, joining Slack channels, and meeting your team. HR will schedule orientation on day one.",
+      "sources": [
+        {
+          "app": "wiki",
+          "id": "wiki-013",
+          "title": "Bug Triage Process"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-003",
+          "title": "Deployment Runbook"
+        },
+        {
+          "app": "jira",
+          "id": "jira-009",
+          "title": "Refactor authentication middleware"
+        },
+        {
+          "app": "jira",
+          "id": "jira-011",
+          "title": "Fix intermittent 502 errors on staging"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-001",
+          "title": "Company Onboarding Guide"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-007",
+          "title": "VPN Setup Instructions"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-011",
+          "title": "Brand Guidelines"
+        },
+        {
+          "app": "jira",
+          "id": "jira-001",
+          "title": "Fix login page crash on Safari 16"
+        }
+      ],
+      "stats": {
+        "total": 60,
+        "visible": 39,
+        "hidden": 21
+      },
+      "previousFingerprint": "9c47fc96ebfe52e15840ac1a21f08de2afaf8dcc2b85cf70a885d44c462f8649",
+      "fingerprint": "201a34ae533253e10e6f824109a317abcfcc73e834049176080a862b035c2f41"
+    },
+    {
+      "index": 2,
+      "timestamp": "2026-10-04T09:29:43.730Z",
+      "userId": "user-junior",
+      "userName": "Alex Kim",
+      "userRole": "junior_engineer",
+      "query": "What is the deployment process?",
+      "answer": "Based on 8 relevant items from Wiki, Jira:\n\n**Bug Triage Process** (Wiki): Bugs are triaged daily at 10am. Severity levels: P0 (site down, fix immediately), P1 (major feature broken, fix within 24h), P2 (minor feature, fix within sprint), P3 (cosmetic, backlog). Use the bug report template in Jira.\n\n**Deployment Runbook** (Wiki): To deploy: 1) Run tests. 2) Create PR to main. 3) CI runs automatically. 4) Monitor dashboards. 5) If errors, rollback with ./rollback.sh. NEW: Always post in #engineering before deploying!\n\n**Refactor authentication middleware** (To Do, P2, assigned to Jennifer Park): Current auth middleware is 500 lines of nested callbacks. Refactor to async/await, add unit tests (target 80% coverage), and extract JWT validation into its own module. No behavior changes.\n\n**Fix intermittent 502 errors on staging** (In Progress, P1, assigned to Sarah Chen): Staging environment returns 502 errors about once an hour. Logs show the Node process is being OOM-killed. Memory profile shows a leak in the websocket connection pool. Need to fix the cleanup logic.\n\n**Company Onboarding Guide** (Wiki): Welcome to the company! This guide covers your first week: setting up your laptop, accessing email, joining Slack channels, and meeting your team. HR will schedule orientation on day one.",
+      "sources": [
+        {
+          "app": "wiki",
+          "id": "wiki-013",
+          "title": "Bug Triage Process"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-003",
+          "title": "Deployment Runbook"
+        },
+        {
+          "app": "jira",
+          "id": "jira-009",
+          "title": "Refactor authentication middleware"
+        },
+        {
+          "app": "jira",
+          "id": "jira-011",
+          "title": "Fix intermittent 502 errors on staging"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-001",
+          "title": "Company Onboarding Guide"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-007",
+          "title": "VPN Setup Instructions"
+        },
+        {
+          "app": "wiki",
+          "id": "wiki-011",
+          "title": "Brand Guidelines"
+        },
+        {
+          "app": "jira",
+          "id": "jira-001",
+          "title": "Fix login page crash on Safari 16"
+        }
+      ],
+      "stats": {
+        "total": 60,
+        "visible": 39,
+        "hidden": 21
+      },
+      "previousFingerprint": "201a34ae533253e10e6f824109a317abcfcc73e834049176080a862b035c2f41",
+      "fingerprint": "a6908edbae7e2e40b4c849e5a8c7a0fa45576d149e0257c699c430e42d004f7d"
+    }
+  ]
+}

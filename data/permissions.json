@@ -1,0 +1,28 @@
+{
+  "overrides": {
+    "user-junior": {
+      "slack": {
+        "allowedChannels": ["#general", "#engineering", "#random", "#design"],
+        "deniedChannels": ["#security-incidents"]
+      }
+    },
+    "user-contractor": {
+      "slack": {
+        "allowedChannels": ["#general", "#random", "#design"],
+        "deniedChannels": ["#engineering", "#security-incidents"]
+      }
+    },
+    "user-security": {
+      "slack": {
+        "allowedChannels": ["#general", "#engineering", "#random", "#design", "#security-incidents"],
+        "deniedChannels": []
+      }
+    },
+    "user-compliance": {
+      "slack": {
+        "allowedChannels": ["#general", "#engineering", "#random", "#design", "#security-incidents"],
+        "deniedChannels": []
+      }
+    }
+  }
+}

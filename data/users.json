@@ -1,0 +1,71 @@
+[
+  {
+    "id": "user-junior",
+    "name": "Alex Kim",
+    "title": "Junior Engineer",
+    "role": "junior_engineer",
+    "description": "A junior engineer who sees normal engineering and general content. Has access to most non-secret items but cannot view security incident channels or business/financial reports.",
+    "permissions": {
+      "wiki": { "access": "role-based", "deniedItems": [] },
+      "jira": { "access": "role-based", "deniedItems": [] },
+      "slack": { 
+        "access": "channel-based",
+        "allowedChannels": ["#general", "#engineering", "#random", "#design"],
+        "deniedChannels": ["#security-incidents"]
+      },
+      "drive": { "access": "role-based", "deniedItems": [] }
+    }
+  },
+  {
+    "id": "user-contractor",
+    "name": "Jordan Lee",
+    "title": "Outside Contractor",
+    "role": "contractor",
+    "description": "An outside contractor who sees very little. Only has access to general/onboarding content, the random channel, and brand assets. Cannot see engineering, business, or security items.",
+    "permissions": {
+      "wiki": { "access": "role-based", "deniedItems": [] },
+      "jira": { "access": "role-based", "deniedItems": [] },
+      "slack": { 
+        "access": "channel-based",
+        "allowedChannels": ["#general", "#random", "#design"],
+        "deniedChannels": ["#engineering", "#security-incidents"]
+      },
+      "drive": { "access": "role-based", "deniedItems": [] }
+    }
+  },
+  {
+    "id": "user-security",
+    "name": "David Okafor",
+    "title": "Security Team Member",
+    "role": "security_team",
+    "description": "A security team member who sees everything including secret items like breach reports, incident responses, and penetration test results.",
+    "permissions": {
+      "wiki": { "access": "role-based", "deniedItems": [] },
+      "jira": { "access": "role-based", "deniedItems": [] },
+      "slack": { 
+        "access": "channel-based",
+        "allowedChannels": ["#general", "#engineering", "#random", "#design", "#security-incidents"],
+        "deniedChannels": []
+      },
+      "drive": { "access": "role-based", "deniedItems": [] }
+    }
+  },
+  {
+    "id": "user-compliance",
+    "name": "Lisa Bergstrom",
+    "title": "Compliance Officer",
+    "role": "compliance_officer",
+    "description": "A compliance officer who sees everything the security team sees, plus can access the audit diary. Checks the diary for tampering and ensures all access is logged.",
+    "permissions": {
+      "wiki": { "access": "role-based", "deniedItems": [] },
+      "jira": { "access": "role-based", "deniedItems": [] },
+      "slack": { 
+        "access": "channel-based",
+        "allowedChannels": ["#general", "#engineering", "#random", "#design", "#security-incidents"],
+        "deniedChannels": []
+      },
+      "drive": { "access": "role-based", "deniedItems": [] },
+      "diary": { "access": "full" }
+    }
+  }
+]

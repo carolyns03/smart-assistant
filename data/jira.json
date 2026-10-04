@@ -1,0 +1,167 @@
+[
+  {
+    "id": "jira-001",
+    "title": "Fix login page crash on Safari 16",
+    "description": "Users on Safari 16 report the login page crashes when they click 'Remember Me'. Console shows a null reference in the cookie handler. Likely related to the recent cookie consent banner changes.",
+    "status": "In Progress",
+    "assignee": "Sarah Chen",
+    "priority": "P1",
+    "tags": ["frontend", "bug", "login"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-002",
+    "title": "Add dark mode to dashboard",
+    "description": "Users have been requesting dark mode. Implement a theme toggle in the user settings. Use CSS variables for colors. Persist preference in localStorage. Follow the design system tokens.",
+    "status": "To Do",
+    "assignee": "Mike Rodriguez",
+    "priority": "P2",
+    "tags": ["frontend", "feature", "design"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-003",
+    "title": "Database migration to PostgreSQL 15",
+    "description": "Plan and execute migration from PG 13 to PG 15. Need to test all queries, update connection pooling, verify backup/restore procedures. Estimated 2 sprints. Risk: potential downtime if rollback needed.",
+    "status": "In Progress",
+    "assignee": "Jennifer Park",
+    "priority": "P1",
+    "tags": ["backend", "database", "migration"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-004",
+    "title": "Security audit: review S3 bucket permissions",
+    "description": "After the September incident, audit all S3 buckets for public access. Create a report of any misconfigured buckets. Implement automated checks via AWS Config. This is a follow-up from the breach post-mortem.",
+    "status": "In Progress",
+    "assignee": "David Okafor",
+    "priority": "P0",
+    "tags": ["security", "audit", "secret"],
+    "restricted": true,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-005",
+    "title": "Implement pagination for search results",
+    "description": "Search currently returns all results at once. For large queries this causes timeouts. Implement cursor-based pagination, 20 results per page. Add metadata for total count and next cursor.",
+    "status": "To Do",
+    "assignee": "Sarah Chen",
+    "priority": "P2",
+    "tags": ["backend", "feature", "search"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-006",
+    "title": "Update privacy policy for GDPR compliance",
+    "description": "Legal team flagged that our privacy policy doesn't mention the new data processing subprocessor. Need to update the policy page and notify all EU users via email within 30 days.",
+    "status": "To Do",
+    "assignee": "Lisa Bergstrom",
+    "priority": "P1",
+    "tags": ["legal", "compliance", "gdpr"],
+    "restricted": false,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-007",
+    "title": "Set up monitoring for new payment gateway",
+    "description": "We're switching to Stripe. Set up Datadog monitors for: payment success rate, webhook latency, refund volume. Create a dashboard for the finance team. Alert on error rate > 1%.",
+    "status": "Done",
+    "assignee": "Mike Rodriguez",
+    "priority": "P2",
+    "tags": ["devops", "monitoring", "payments"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-008",
+    "title": "Investigate anomaly in API traffic from IP 203.0.113.45",
+    "description": "SOC flagged unusual API traffic: 50,000 requests/hour from a single IP, scraping user profile data. Investigating if this is a scraper or a compromised account. Possibly related to the September breach. Report to security team only.",
+    "status": "In Progress",
+    "assignee": "David Okafor",
+    "priority": "P0",
+    "tags": ["security", "incident", "secret"],
+    "restricted": true,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-009",
+    "title": "Refactor authentication middleware",
+    "description": "Current auth middleware is 500 lines of nested callbacks. Refactor to async/await, add unit tests (target 80% coverage), and extract JWT validation into its own module. No behavior changes.",
+    "status": "To Do",
+    "assignee": "Jennifer Park",
+    "priority": "P2",
+    "tags": ["backend", "refactor", "auth"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-010",
+    "title": "Create onboarding email sequence",
+    "description": "Design a 5-day email drip for new users: Day 1 welcome, Day 2 key features, Day 3 tips & tricks, Day 4 community, Day 5 advanced features. Use our email template system.",
+    "status": "To Do",
+    "assignee": "Lisa Bergstrom",
+    "priority": "P3",
+    "tags": ["marketing", "email", "onboarding"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-011",
+    "title": "Fix intermittent 502 errors on staging",
+    "description": "Staging environment returns 502 errors about once an hour. Logs show the Node process is being OOM-killed. Memory profile shows a leak in the websocket connection pool. Need to fix the cleanup logic.",
+    "status": "In Progress",
+    "assignee": "Sarah Chen",
+    "priority": "P1",
+    "tags": ["backend", "bug", "staging"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-012",
+    "title": "Penetration test results - October 2026",
+    "description": "External pentest found: 1 critical (SQL injection in search endpoint - FIXED), 2 high (XSS in profile page, missing rate limit on password reset), 3 medium (verbose error messages, missing security headers, outdated jQuery). Full report in shared drive.",
+    "status": "In Progress",
+    "assignee": "David Okafor",
+    "priority": "P0",
+    "tags": ["security", "pentest", "secret"],
+    "restricted": true,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-013",
+    "title": "Mobile app push notification setup",
+    "description": "Set up APNs (iOS) and FCM (Android) for push notifications. Create a notification service that sends: new message, mentions, and daily summary. Users can toggle notification types in settings.",
+    "status": "To Do",
+    "assignee": "Mike Rodriguez",
+    "priority": "P2",
+    "tags": ["mobile", "feature", "notifications"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-014",
+    "title": "Data retention policy implementation",
+    "description": "Implement automated data deletion per our retention policy: user data deleted 90 days after account closure. Logs retained 1 year. Need to create cron jobs and add a compliance dashboard. Required for SOC 2 audit.",
+    "status": "To Do",
+    "assignee": "Lisa Bergstrom",
+    "priority": "P1",
+    "tags": ["compliance", "backend", "data"],
+    "restricted": false,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "jira-015",
+    "title": "Upgrade Node.js to v20 LTS",
+    "description": "We're on Node 16 which reaches EOL. Plan upgrade to v20 LTS: update package.json, test all services, update Dockerfile, deploy to staging, run full QA, then production. Watch for breaking changes in streams and fetch API.",
+    "status": "To Do",
+    "assignee": "Jennifer Park",
+    "priority": "P2",
+    "tags": ["devops", "upgrade", "node"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  }
+]

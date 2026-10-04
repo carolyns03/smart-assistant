@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Diary - Smart Assistant MVP</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #1a1a2e; }
+    .header { background: #1a1a2e; color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .header h1 { font-size: 20px; }
+    .header nav a { color: #a0a0c0; text-decoration: none; margin-left: 24px; font-size: 14px; }
+    .header nav a:hover, .header nav a.active { color: white; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    .controls { background: white; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .controls button { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+    .btn-verify { background: #1a73e8; color: white; }
+    .btn-verify:hover { background: #1557b0; }
+    .btn-tamper { background: #dc3545; color: white; }
+    .btn-tamper:hover { background: #b02a37; }
+    .btn-repair { background: #28a745; color: white; }
+    .btn-repair:hover { background: #218838; }
+    .btn-clear { background: #6c757d; color: white; }
+    .btn-clear:hover { background: #5a6268; }
+    .status-box { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; font-weight: 600; }
+    .status-box.valid { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .status-box.tampered { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .status-box.checking { background: #fff3cd; color: #856404; border: 1px solid #ffe69c; }
+    .entries-list { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden; }
+    .entry { padding: 16px; border-bottom: 1px solid #eee; }
+    .entry:last-child { border-bottom: none; }
+    .entry.tampered { background: #fff5f5; border-left: 4px solid #dc3545; }
+    .entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .entry-index { font-weight: 700; font-size: 14px; color: #1a73e8; }
+    .entry-time { font-size: 12px; color: #888; }
+    .entry-user { font-size: 13px; margin-bottom: 4px; }
+    .entry-user .role-badge { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; background: #eee; margin-left: 6px; }
+    .entry-query { font-size: 13px; color: #333; margin-bottom: 4px; }
+    .entry-query strong { color: #1a1a2e; }
+    .entry-answer { font-size: 12px; color: #666; margin-bottom: 4px; max-height: 60px; overflow: hidden; text-overflow: ellipsis; }
+    .entry-stats { font-size: 11px; color: #888; }
+    .entry-fingerprint { font-size: 10px; color: #aaa; font-family: monospace; margin-top: 4px; word-break: break-all; }
+    .empty-state { text-align: center; color: #999; padding: 40px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Audit Diary</h1>
+    <nav>
+      <a href="/">Chat</a>
+      <a href="/diary.html" class="active">Diary</a>
+    </nav>
+  </div>
+
+  <div class="container">
+    <div class="controls">
+      <button class="btn-verify" onclick="verifyDiary()">Verify Integrity</button>
+      <button class="btn-tamper" onclick="tamperRandom()">Tamper with a random entry</button>
+      <button class="btn-repair" onclick="repairDiary()">Repair diary</button>
+      <button class="btn-clear" onclick="clearDiary()">Clear diary</button>
+      <button onclick="loadDiary()" style="background:#e0e0e0;color:#333;">Refresh</button>
+    </div>
+
+    <div id="statusBox" class="status-box" style="display:none;"></div>
+
+    <div class="entries-list" id="entriesList">
+      <div class="empty-state">Loading diary...</div>
+    </div>
+  </div>
+
+  <script>
+    function loadDiary() {
+      fetch('/api/diary').then(function(r) { return r.json(); }).then(function(data) {
+        renderEntries(data.entries || [], -1);
+        var statusBox = document.getElementById('statusBox');
+        statusBox.style.display = 'none';
+      });
+    }
+
+    function renderEntries(entries, tamperedIndex) {
+      var container = document.getElementById('entriesList');
+      if (!entries || entries.length === 0) {
+        container.innerHTML = '<div class="empty-state">No diary entries yet. Ask questions in the chat to generate entries.</div>';
+        return;
+      }
+      container.innerHTML = '';
+      entries.forEach(function(e, i) {
+        var div = document.createElement('div');
+        div.className = 'entry';
+        if (i === tamperedIndex) div.className += ' tampered';
+        var time = new Date(e.timestamp).toLocaleString();
+        var answerPreview = (e.answer || '').substring(0, 120);
+        if (e.answer && e.answer.length > 120) answerPreview += '...';
+
+        div.innerHTML =
+          '<div class="entry-header">' +
+            '<span class="entry-index">Entry #' + e.index + '</span>' +
+            '<span class="entry-time">' + time + '</span>' +
+          '</div>' +
+          '<div class="entry-user"><strong>' + escapeHtml(e.userName) + '</strong> <span class="role-badge">' + escapeHtml(e.userRole) + '</span></div>' +
+          '<div class="entry-query"><strong>Q:</strong> ' + escapeHtml(e.query) + '</div>' +
+          '<div class="entry-answer"><strong>A:</strong> ' + escapeHtml(answerPreview) + '</div>' +
+          '<div class="entry-stats">Visible: ' + (e.stats ? e.stats.visible : '?') + '/' + (e.stats ? e.stats.total : '?') +
+            ' (' + (e.stats ? e.stats.hidden : '?') + ' hidden)</div>' +
+          '<div class="entry-fingerprint">fingerprint: ' + (e.fingerprint || '').substring(0, 32) + '...</div>' +
+          '<div class="entry-fingerprint">prev: ' + (e.previousFingerprint ? (e.previousFingerprint.substring(0, 32) + '...') : 'null (genesis)') + '</div>';
+
+        container.appendChild(div);
+      });
+    }
+
+    function verifyDiary() {
+      var statusBox = document.getElementById('statusBox');
+      statusBox.style.display = 'block';
+      statusBox.className = 'status-box checking';
+      statusBox.textContent = 'Verifying diary integrity...';
+
+      fetch('/api/diary/verify').then(function(r) { return r.json(); }).then(function(data) {
+        if (data.valid) {
+          statusBox.className = 'status-box valid';
+        } else {
+          statusBox.className = 'status-box tampered';
+        }
+        statusBox.textContent = data.message;
+        renderEntries(data.entries || [], data.tamperedIndex);
+      });
+    }
+
+    function tamperRandom() {
+      fetch('/api/diary').then(function(r) { return r.json(); }).then(function(data) {
+        var entries = data.entries || [];
+        if (entries.length === 0) {
+          alert('No entries to tamper with. Ask some questions first.');
+          return;
+        }
+        var randomIndex = Math.floor(Math.random() * entries.length);
+        fetch('/api/diary/tamper', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            index: randomIndex,
+            field: 'query',
+            newValue: '[TAMPERED] This entry was edited without authorization!'
+          }),
+        }).then(function(r) { return r.json(); }).then(function(result) {
+          alert(result.message);
+          loadDiary();
+          var statusBox = document.getElementById('statusBox');
+          statusBox.style.display = 'block';
+          statusBox.className = 'status-box tampered';
+          statusBox.textContent = 'WARNING: An entry has been tampered with. Click "Verify Integrity" to detect it.';
+        });
+      });
+    }
+
+    function repairDiary() {
+      fetch('/api/diary/repair', { method: 'POST' }).then(function(r) { return r.json(); }).then(function(data) {
+        alert(data.message);
+        loadDiary();
+      });
+    }
+
+    function clearDiary() {
+      if (!confirm('Clear all diary entries?')) return;
+      fetch('/api/diary/clear', { method: 'POST' }).then(function(r) { return r.json(); }).then(function(data) {
+        loadDiary();
+      });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    loadDiary();
+  </script>
+</body>
+</html>

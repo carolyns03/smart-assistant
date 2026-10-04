@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Assistant MVP</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #1a1a2e; }
+    .header { background: #1a1a2e; color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .header h1 { font-size: 20px; }
+    .header nav a { color: #a0a0c0; text-decoration: none; margin-left: 24px; font-size: 14px; }
+    .header nav a:hover, .header nav a.active { color: white; }
+    .container { max-width: 900px; margin: 0 auto; padding: 24px; }
+    .user-bar { background: white; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .user-bar label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 8px; }
+    .user-select-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .user-card { border: 2px solid #e0e0e0; border-radius: 8px; padding: 12px 16px; cursor: pointer; transition: all 0.15s; flex: 1; min-width: 180px; }
+    .user-card:hover { border-color: #1a73e8; }
+    .user-card.selected { border-color: #1a73e8; background: #e8f0fe; }
+    .user-card .name { font-weight: 600; font-size: 14px; }
+    .user-card .title { font-size: 12px; color: #666; margin-top: 2px; }
+    .user-card .role-badge { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 4px; background: #eee; }
+    .chat-box { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden; }
+    .chat-messages { padding: 16px; max-height: 400px; overflow-y: auto; }
+    .msg { margin-bottom: 12px; }
+    .msg.user { text-align: right; }
+    .msg .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; max-width: 80%; text-align: left; font-size: 14px; line-height: 1.5; }
+    .msg.user .bubble { background: #1a73e8; color: white; }
+    .msg.assistant .bubble { background: #f0f0f0; color: #1a1a2e; }
+    .msg.assistant .bubble pre { white-space: pre-wrap; font-family: inherit; font-size: 14px; }
+    .sources { margin-top: 8px; font-size: 12px; color: #666; }
+    .sources .source-tag { display: inline-block; background: #e8f0fe; color: #1a73e8; padding: 2px 8px; border-radius: 4px; margin: 2px; font-size: 11px; }
+    .stats-bar { font-size: 11px; color: #888; margin-top: 6px; }
+    .chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #e0e0e0; }
+    .chat-input input { flex: 1; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+    .chat-input button { padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+    .chat-input button:hover { background: #1557b0; }
+    .chat-input button:disabled { background: #ccc; cursor: not-allowed; }
+    .demo-bar { background: #fff3cd; border: 1px solid #ffe69c; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; }
+    .demo-bar strong { color: #664d03; }
+    .demo-btns { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .demo-btns button { padding: 6px 12px; background: #ffc107; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
+    .demo-btns button:hover { background: #e0a800; }
+    .empty-state { text-align: center; color: #999; padding: 40px; font-size: 14px; }
+    .refresh-bar { font-size: 11px; color: #664d03; margin-top: 6px; }
+    .refresh-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #28a745; margin-right: 4px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Smart Assistant</h1>
+    <nav>
+      <a href="/" class="active">Chat</a>
+      <a href="/diary.html">Diary</a>
+    </nav>
+  </div>
+
+  <div class="container">
+    <div class="demo-bar">
+      <strong>Demo controls:</strong> Try the scenario buttons below to see the system in action.
+      <div class="demo-btns">
+        <button onclick="demoScenario(1)">1. Junior asks a question</button>
+        <button onclick="demoScenario(2)">2. Contractor asks about breach</button>
+        <button onclick="demoScenario(3)">3. Edit a page (live update)</button>
+        <button onclick="demoScenario(4)">4. Remove engineer's channel access</button>
+      </div>
+      <div class="refresh-bar" id="refreshBar"><span class="refresh-dot"></span> Data is re-read from files on every request — changes appear immediately.</div>
+    </div>
+
+    <div class="user-bar">
+      <label>Who are you? (select a persona)</label>
+      <div class="user-select-row" id="userCards"></div>
+    </div>
+
+    <div class="chat-box">
+      <div class="chat-messages" id="chatMessages">
+        <div class="empty-state">Select a persona and ask a question to get started.</div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="queryInput" placeholder="Ask a question..." onkeypress="if(event.key==='Enter') askQuestion()">
+        <button id="askBtn" onclick="askQuestion()">Ask</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var selectedUser = null;
+    var users = [];
+
+    function loadUsers() {
+      fetch('/api/users').then(function(r) { return r.json(); }).then(function(data) {
+        users = data;
+        var container = document.getElementById('userCards');
+        container.innerHTML = '';
+        users.forEach(function(u) {
+          var card = document.createElement('div');
+          card.className = 'user-card';
+          card.onclick = function() { selectUser(u.id); };
+          card.innerHTML = '<div class="name">' + u.name + '</div>' +
+            '<div class="title">' + u.title + '</div>' +
+            '<div class="role-badge">' + u.role + '</div>';
+          container.appendChild(card);
+        });
+      });
+    }
+
+    function selectUser(userId) {
+      selectedUser = userId;
+      var cards = document.querySelectorAll('.user-card');
+      cards.forEach(function(c, i) {
+        c.classList.toggle('selected', users[i].id === userId);
+      });
+    }
+
+    function askQuestion() {
+      if (!selectedUser) { alert('Please select a persona first.'); return; }
+      var input = document.getElementById('queryInput');
+      var query = input.value.trim();
+      if (!query) return;
+
+      addMessage('user', query);
+      input.value = '';
+      document.getElementById('askBtn').disabled = true;
+
+      fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: selectedUser, query: query }),
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        addMessage('assistant', data);
+        document.getElementById('askBtn').disabled = false;
+      });
+    }
+
+    function addMessage(role, data) {
+      var container = document.getElementById('chatMessages');
+      var empty = container.querySelector('.empty-state');
+      if (empty) empty.remove();
+
+      var msg = document.createElement('div');
+      msg.className = 'msg ' + role;
+      var bubble = document.createElement('div');
+      bubble.className = 'bubble';
+
+      if (role === 'user') {
+        bubble.textContent = data;
+      } else {
+        var html = '<pre>' + escapeHtml(data.answer) + '</pre>';
+        if (data.sources && data.sources.length > 0) {
+          html += '<div class="sources"><strong>Sources:</strong> ';
+          data.sources.forEach(function(s) {
+            var appName = ({wiki:'Wiki',jira:'Jira',slack:'Slack',drive:'Drive'})[s.app] || s.app;
+            html += '<span class="source-tag">' + appName + ': ' + escapeHtml(s.title) + '</span>';
+          });
+          html += '</div>';
+        }
+        if (data.stats) {
+          html += '<div class="stats-bar">Visible: ' + data.stats.visible + ' / ' + data.stats.total +
+            ' items (' + data.stats.hidden + ' hidden by permissions) | Diary entry #' + (data.diaryEntryIndex !== undefined ? data.diaryEntryIndex : '?') + '</div>';
+        }
+        bubble.innerHTML = html;
+      }
+
+      msg.appendChild(bubble);
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function demoScenario(num) {
+      if (num === 1) {
+        selectUser('user-junior');
+        document.getElementById('queryInput').value = 'What is the deployment process?';
+      } else if (num === 2) {
+        selectUser('user-contractor');
+        document.getElementById('queryInput').value = 'Tell me about the data breach report';
+      } else if (num === 3) {
+        var newContent = 'To deploy: 1) Run tests. 2) Create PR to main. 3) CI runs automatically. 4) Monitor dashboards. 5) If errors, rollback with ./rollback.sh. NEW: Always post in #engineering before deploying!';
+        fetch('/api/apps/wiki/wiki-003', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: newContent }),
+        }).then(function() {
+          selectUser('user-junior');
+          document.getElementById('queryInput').value = 'What is the deployment process?';
+          alert('Wiki page "Deployment Runbook" updated. Ask the question to see the change.');
+        });
+      } else if (num === 4) {
+        fetch('/api/permissions/user-junior/slack/channels', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            allowedChannels: ['#general', '#random', '#design'],
+            deniedChannels: ['#engineering', '#security-incidents'],
+          }),
+        }).then(function() {
+          selectUser('user-junior');
+          document.getElementById('queryInput').value = 'What did Sarah say about the login fix?';
+          alert("Junior engineer's access to #engineering has been removed. Ask the question to see the change.");
+        });
+      }
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+[
+  {
+    "id": "drive-001",
+    "title": "Q3 2026 Financial Report.xlsx",
+    "type": "spreadsheet",
+    "content": "Revenue: $4.2M (+12% YoY). Expenses: $3.1M. Operating margin: 26%. Headcount: 187. Key cost centers: Engineering (40%), Sales (25%), G&A (15%), Support (12%), Marketing (8%).",
+    "tags": ["finance", "quarterly", "report"],
+    "restricted": false,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-002",
+    "title": "Engineering Org Chart.pdf",
+    "type": "document",
+    "content": "VP Engineering: Alex Thompson. Reports: Frontend Lead (Sarah Chen), Backend Lead (Jennifer Park), DevOps Lead (Mike Rodriguez), Mobile Lead (vacant). Total engineers: 42. Contractors: 5.",
+    "tags": ["engineering", "hr", "org"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-003",
+    "title": "Product Roadmap 2026 H2.pdf",
+    "type": "document",
+    "content": "Q3: Dark mode, new API v2, mobile push notifications. Q4: Real-time collaboration, AI search, enterprise SSO improvements. Research phase: voice commands, offline mode.",
+    "tags": ["product", "roadmap", "strategy"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-004",
+    "title": "Security Posture Assessment.pdf",
+    "type": "document",
+    "content": "Overall security score: 78/100. Strengths: MFA enforced, encryption at rest, regular pentests. Weaknesses: some S3 buckets misconfigured (fixed after Sept incident), no WAF on API endpoints (now added), dependency scanning needs automation. Recommendations: implement CSP, add dependency scanning to CI.",
+    "tags": ["security", "assessment", "secret"],
+    "restricted": true,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-005",
+    "title": "Brand Assets 2026.zip",
+    "type": "archive",
+    "content": "Contains: logo files (SVG, PNG, various sizes), brand color palette, font files (Inter), icon set, presentation templates, email signature template. Use the updated logo with correct spacing.",
+    "tags": ["design", "brand", "assets"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-006",
+    "title": "Employee Survey Results 2026 Q2.pdf",
+    "type": "document",
+    "content": "Engagement score: 7.2/10 (up from 6.8). Top positives: work-life balance, team culture, remote flexibility. Top concerns: career growth paths, compensation transparency, meeting overload. Response rate: 89%.",
+    "tags": ["hr", "survey", "engagement"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-007",
+    "title": "Customer Churn Analysis.xlsx",
+    "type": "spreadsheet",
+    "content": "Q3 churn rate: 4.2% (up from 3.1%). Churn by segment: Enterprise 1.1%, Mid-market 3.5%, SMB 8.7%. Top churn reasons: price (32%), missing features (28%), switching to competitor (19%), out of business (21%).",
+    "tags": ["business", "sales", "churn"],
+    "restricted": false,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-008",
+    "title": "API Documentation v2.md",
+    "type": "document",
+    "content": "API v2 endpoints: /v2/users, /v2/messages, /v2/search. All return JSON. Auth via Bearer token. Rate limit: 100/min. New features: cursor pagination, field selection, webhook subscriptions. Breaking changes from v1: response format, auth header.",
+    "tags": ["engineering", "api", "docs"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-009",
+    "title": "Incident Response Playbook.pdf",
+    "type": "document",
+    "content": "Step-by-step IR procedures: 1) Identify and classify the incident. 2) Assemble response team (Security, Legal, Comms). 3) Contain and isolate. 4) Collect evidence. 5) Eradicate threat. 6) Recover. 7) Post-incident review. Contact tree and escalation matrix included.",
+    "tags": ["security", "incident", "playbook", "secret"],
+    "restricted": true,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-010",
+    "title": "Board Meeting Deck - September 2026.pdf",
+    "type": "presentation",
+    "content": "Board deck covering: financial performance, product milestones, hiring update, competitive landscape, risks. Key discussion: SMB churn strategy, AI investment priorities. Next board meeting: December 2026.",
+    "tags": ["business", "board", "executive"],
+    "restricted": false,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-011",
+    "title": "Onboarding Checklist for New Hires.pdf",
+    "type": "document",
+    "content": "Day 1: laptop setup, email, Slack, VPN. Week 1: meet team, codebase access, dev environment setup. Week 2: first small task assigned. 30 days: check-in with manager. 60 days: first PR merged. 90 days: performance review.",
+    "tags": ["hr", "onboarding", "general"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-012",
+    "title": "Penetration Test Report October 2026.pdf",
+    "type": "document",
+    "content": "Full pentest report by external firm SecureWorks. Findings: 1 critical (SQL injection in /search - patched), 2 high (stored XSS in profile bio, no rate limit on /reset-password), 3 medium (verbose errors, missing CSP, outdated jQuery 3.4.1). All high findings remediated. Medium findings in progress.",
+    "tags": ["security", "pentest", "report", "secret"],
+    "restricted": true,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-013",
+    "title": "Vendor Master Service Agreement.pdf",
+    "type": "document",
+    "content": "Standard MSA for all vendors. Sections: definitions, scope of services, payment terms (Net 30), confidentiality, IP assignment, data processing addendum, limitation of liability, termination (30 days notice), governing law (Delaware). Legal must approve any modifications.",
+    "tags": ["legal", "vendor", "contract"],
+    "restricted": false,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-014",
+    "title": "SOC 2 Compliance Checklist.xlsx",
+    "type": "spreadsheet",
+    "content": "SOC 2 Type II audit prep: access controls (implemented - MFA, RBAC), encryption (implemented - at rest and in transit), monitoring (implemented - Datadog + CloudTrail), incident response (implemented - documented), vulnerability management (in progress - automated scanning needed). Audit date: November 2026.",
+    "tags": ["compliance", "soc2", "audit"],
+    "restricted": false,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "drive-015",
+    "title": "Team Building Event Photos.zip",
+    "type": "archive",
+    "content": "Photos from the September team building event: escape room, dinner, karaoke. Great turnout - 85% of the office participated. Next event: October Halloween costume contest and pumpkin carving.",
+    "tags": ["social", "events", "general"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer"]
+  }
+]
