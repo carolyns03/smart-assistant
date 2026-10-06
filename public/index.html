@@ -263,9 +263,8 @@
           });
           html += '</div>';
         }
-        if (data.stats) {
-          html += '<div class="stats-bar">Visible: ' + data.stats.visible + ' / ' + data.stats.total +
-            ' items (' + data.stats.hidden + ' hidden by permissions) | Audit entry #' + (data.diaryEntryIndex !== undefined ? data.diaryEntryIndex : '?') + '</div>';
+        if (data.diaryEntryIndex !== undefined && data.diaryEntryIndex !== null) {
+          html += '<div class="stats-bar">Audit entry #' + data.diaryEntryIndex + '</div>';
         }
         bubble.innerHTML = html;
       }
@@ -310,16 +309,33 @@
       panel.style.display = 'block';
       document.getElementById('demoPanelTitle').textContent = 'Scenario 4: Live Permission Change Controls';
       document.getElementById('demoPanelContent').innerHTML = '' +
-        '<div style="margin-bottom:10px;font-size:12px;color:#aaa;">Change the Customer Service role and ask the same question to see how the answer changes:</div>' +
+        '<div style="margin-bottom:10px;font-size:12px;color:#aaa;">S4 clean revocation test: same user + same question, only change one resource ALLOW &rarr; DENY.</div>' +
+        '<div class="demo-row" style="margin-bottom:8px;">' +
+          '<button class="demo-btn-red" onclick="toggleResource(\'user-custservice\',\'drive\',\'drive-008\',\'deny\')">a) DENY bank account resource</button>' +
+          '<button class="demo-btn-green" onclick="toggleResource(\'user-custservice\',\'drive\',\'drive-008\',\'allow\')">b) ALLOW bank account resource</button>' +
+        '</div>' +
+        '<div style="margin-bottom:8px;font-size:11px;color:#666;">Additional role-based tests (broader permission changes):</div>' +
         '<div class="demo-row">' +
-          '<button class="demo-btn-blue" onclick="changeRole(\'user-custservice\',\'security_team\')">a) Add permissions (security_team)</button>' +
-          '<button class="demo-btn-red" onclick="changeRole(\'user-custservice\',\'contractor\')">b) Remove permissions (contractor)</button>' +
-          '<button class="demo-btn-yellow" onclick="changeRole(\'user-custservice\',\'compliance_officer\')">c) Totally change role (compliance)</button>' +
+          '<button class="demo-btn-blue" onclick="changeRole(\'user-custservice\',\'security_team\')">c) Add permissions (security_team)</button>' +
+          '<button class="demo-btn-red" onclick="changeRole(\'user-custservice\',\'contractor\')">d) Remove permissions (contractor)</button>' +
         '</div>' +
         '<div class="demo-row" style="margin-top:8px;">' +
           '<button class="demo-btn-green" onclick="resetPermissions(\'user-custservice\')">Reset to default</button>' +
           '<button class="demo-btn-green" onclick="resetAll()">Reset ALL demo changes</button>' +
         '</div>';
+    }
+
+    function toggleResource(userId, appKey, itemId, action) {
+      fetch('/api/permissions/' + userId + '/resource/' + appKey + '/' + itemId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: action }),
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        permChangedUsers.add(userId);
+        renderUserCards();
+        selectUser(userId);
+        addSystemMessage('Resource permission: ' + data.message + ' Ask the same question again to see the answer change.');
+      });
     }
 
     function changeRole(userId, newRole) {

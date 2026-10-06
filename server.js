@@ -27,16 +27,16 @@ function saveUsers(users) {
   fs.writeFileSync(path.join(DATA_DIR, 'users.json'), JSON.stringify(users, null, 2));
 }
 
-// ─── Main Q&A endpoint ───
-// Core flow: filter → search → answer → log
-app.post('/api/ask', function (req, res) {
+// ─── Main Q&A endpoint (v2: ADP integration) ───
+// Core flow: filter → search → build authorized context → call ADP → log
+app.post('/api/ask', async function (req, res) {
   var userId = req.body.userId;
   var query = req.body.query;
   if (!userId || !query) {
     return res.status(400).json({ error: 'userId and query are required' });
   }
 
-  // Step 1: Filter data based on user permissions (BEFORE search/answer)
+  // Step 1: Filter data based on user permissions (BEFORE search/answer/ADP)
   var filtered = getFilteredData(userId);
   if (!filtered) {
     return res.status(404).json({ error: 'User not found' });
@@ -45,10 +45,29 @@ app.post('/api/ask', function (req, res) {
   // Step 2: Search through the already-filtered data only
   var searchResults = searchItems(filtered.filtered, query);
 
-  // Step 3: Generate answer from filtered results only
-  var generated = generateAnswer(searchResults, query, { stats: filtered.stats });
+  // Step 3: Record authorization decisions per relevant resource
+  //   - retrieved resources: items that matched the search (before permission check on results)
+  //   - authorized resources: items the user is allowed to see (already filtered)
+  //   - sent to ADP: the authorized items that were included in the ADP context
+  var retrievedResourceIds = searchResults.map(function (r) {
+    return { app: r.app, id: r.item.id, title: r.item.title, decision: 'ALLOW' };
+  });
 
-  // Step 4: Log to the tamper-proof diary (with authorization decisions)
+  // Since search runs on already-filtered data, all search results are authorized
+  var authorizedResourceIds = retrievedResourceIds.map(function (r) {
+    return { app: r.app, id: r.id, title: r.title, decision: 'ALLOW' };
+  });
+
+  // Items sent to ADP (top 8, same as what generateAnswer uses)
+  var sentToAdpIds = authorizedResourceIds.slice(0, 8);
+
+  // Step 4: Generate answer via ADP (or fallback)
+  var generated = await generateAnswer(searchResults, query, {
+    stats: filtered.stats,
+    userId: filtered.user.id,
+  });
+
+  // Step 5: Log to the tamper-proof audit trail
   var entry = diary.appendEntry({
     userId: filtered.user.id,
     userName: filtered.user.name,
@@ -60,8 +79,19 @@ app.post('/api/ask', function (req, res) {
     freshness: generated.freshness,
     stats: filtered.stats,
     hiddenItems: filtered.hiddenItems,
+    // v2: three-tier resource tracking
+    retrievedResources: retrievedResourceIds,
+    authorizedResources: authorizedResourceIds,
+    sentToAdpResources: sentToAdpIds,
+    // v2: ADP metadata
+    adpMode: generated.adpMode,
+    adpRequestId: generated.requestId,
+    adpConversationId: generated.conversationId,
+    adpVisitorId: generated.visitorId,
+    adpTraceId: generated.traceId,
   });
 
+  // v2: Do NOT expose stats/hiddenItems to the normal user (metadata side-channel)
   res.json({
     user: {
       id: filtered.user.id,
@@ -74,7 +104,7 @@ app.post('/api/ask', function (req, res) {
     platforms: generated.platforms,
     freshness: generated.freshness,
     searchResultCount: searchResults.length,
-    stats: filtered.stats,
+    adpMode: generated.adpMode,
     diaryEntryIndex: entry.index,
   });
 });
@@ -212,13 +242,10 @@ app.post('/api/diary/tamper', function (req, res) {
   res.json(diary.tamperEntry(index, field, newValue));
 });
 
-app.post('/api/diary/repair', function (req, res) {
-  res.json(diary.repairDiary());
-});
-
-app.post('/api/diary/clear', function (req, res) {
-  res.json(diary.clearDiary());
-});
+// v2: Repair and Clear endpoints removed.
+//   - Repair: tampered records are permanently flagged, never re-hashed
+//   - Clear: audit history is append-only (WORM) in the UI
+//   (clearDiary is still used internally by /api/reset for full demo reset)
 
 // ─── App data editing (for the "live edit" demo) ───
 app.get('/api/apps/:appKey', function (req, res) {
@@ -287,6 +314,81 @@ app.put('/api/permissions/:userId/wiki/items', function (req, res) {
   perms.overrides[userId].wiki.deniedItems = deniedItems || [];
   savePermissions(perms);
   res.json({ success: true, permissions: perms.overrides[userId] });
+});
+
+// ─── S4: Resource-level permission toggle (ALLOW → DENY without changing role) ───
+// This is the clean revocation test: same user, same query, same data,
+// only one resource's permission changes ALLOW → DENY.
+app.put('/api/permissions/:userId/resource/:appKey/:itemId', function (req, res) {
+  var userId = req.params.userId;
+  var appKey = req.params.appKey;
+  var itemId = req.params.itemId;
+  var action = req.body.action; // 'allow' or 'deny'
+
+  if (!action || (action !== 'allow' && action !== 'deny')) {
+    return res.status(400).json({ error: 'action must be "allow" or "deny"' });
+  }
+
+  var users = loadUsers();
+  var user = users.find((u) => u.id === userId);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  var perms = loadPermissions();
+  if (!perms.overrides[userId]) perms.overrides[userId] = {};
+
+  var result = { success: true, userId: userId, appKey: appKey, itemId: itemId, action: action };
+
+  if (appKey === 'slack') {
+    // For Slack, toggle channel access
+    var allApps = loadAllApps();
+    var item = allApps.slack.find((i) => i.id === itemId);
+    if (!item) return res.status(404).json({ error: 'Item not found' });
+    var channel = item.channel;
+
+    if (!perms.overrides[userId].slack) {
+      perms.overrides[userId].slack = {
+        access: 'channel-based',
+        allowedChannels: user.permissions.slack ? user.permissions.slack.allowedChannels : [],
+        deniedChannels: user.permissions.slack ? user.permissions.slack.deniedChannels : [],
+      };
+    }
+
+    if (action === 'deny') {
+      // Remove from allowed, add to denied
+      perms.overrides[userId].slack.allowedChannels = perms.overrides[userId].slack.allowedChannels.filter(function(c) { return c !== channel; });
+      if (!perms.overrides[userId].slack.deniedChannels.includes(channel)) {
+        perms.overrides[userId].slack.deniedChannels.push(channel);
+      }
+    } else {
+      // allow: remove from denied, add to allowed
+      perms.overrides[userId].slack.deniedChannels = perms.overrides[userId].slack.deniedChannels.filter(function(c) { return c !== channel; });
+      if (!perms.overrides[userId].slack.allowedChannels.includes(channel)) {
+        perms.overrides[userId].slack.allowedChannels.push(channel);
+      }
+    }
+    result.channel = channel;
+    result.message = 'Resource ' + appKey + '/' + itemId + ' (channel ' + channel + ') set to ' + action.toUpperCase() + ' for ' + user.name + '. Role unchanged.';
+  } else {
+    // For wiki/jira/drive, use deniedItems list
+    if (!perms.overrides[userId][appKey]) {
+      perms.overrides[userId][appKey] = { access: 'role-based', deniedItems: [] };
+    }
+    if (!perms.overrides[userId][appKey].deniedItems) {
+      perms.overrides[userId][appKey].deniedItems = [];
+    }
+
+    if (action === 'deny') {
+      if (!perms.overrides[userId][appKey].deniedItems.includes(itemId)) {
+        perms.overrides[userId][appKey].deniedItems.push(itemId);
+      }
+    } else {
+      perms.overrides[userId][appKey].deniedItems = perms.overrides[userId][appKey].deniedItems.filter(function(id) { return id !== itemId; });
+    }
+    result.message = 'Resource ' + appKey + '/' + itemId + ' set to ' + action.toUpperCase() + ' for ' + user.name + '. Role unchanged.';
+  }
+
+  savePermissions(perms);
+  res.json(result);
 });
 
 // ─── Stats / overview endpoint ───

@@ -72,8 +72,6 @@
       <div class="controls-row">
         <button class="btn-verify" onclick="verifyDiary()">Verify Integrity</button>
         <button class="btn-tamper" onclick="tamperRandom()">Tamper (demo)</button>
-        <button class="btn-repair" onclick="repairDiary()">Repair</button>
-        <button class="btn-clear" onclick="clearDiary()">Clear</button>
         <button class="btn-refresh" onclick="loadDiary()">Refresh</button>
       </div>
       <div class="controls-row search-row">
@@ -136,7 +134,7 @@
       entries.forEach(function(e) {
         var div = document.createElement('div');
         div.className = 'entry';
-        if (e.index === tamperedIndex) div.className += ' tampered';
+        if (e.tampered || e.index === tamperedIndex) div.className += ' tampered';
         var time = new Date(e.timestamp).toLocaleString();
         var answerPreview = (e.answer || '').substring(0, 150);
         if (e.answer && e.answer.length > 150) answerPreview += '...';
@@ -165,15 +163,42 @@
         if (e.authorization) {
           authHtml = '<div class="entry-auth">Authorization: <span class="auth-decision auth-allowed">' + e.authorization.decision +
             '</span> | Method: ' + e.authorization.method +
-            ' | Filtered before LLM: ' + (e.authorization.filteredBeforeLLM ? 'Yes' : 'No') +
-            ' | Visible: ' + e.authorization.visibleItems + ' | Hidden: ' + e.authorization.hiddenItems + '</div>';
+            ' | Filtered before ADP: ' + (e.authorization.filteredBeforeADP ? 'Yes' : 'No') + '</div>';
         }
 
-        var hiddenHtml = '';
-        if (e.hiddenItems && e.hiddenItems.length > 0) {
-          hiddenHtml = '<div class="entry-sources" style="color:#dc3545;">Hidden items: ' +
-            e.hiddenItems.slice(0, 5).map(function(h) { return escapeHtml(h.app + ':' + (h.title || h.id)); }).join(', ') +
-            (e.hiddenItems.length > 5 ? ' (+' + (e.hiddenItems.length - 5) + ' more)' : '') + '</div>';
+        // v2: three-tier resource tracking
+        var resourceHtml = '';
+        if (e.retrievedResources || e.authorizedResources || e.sentToAdpResources) {
+          resourceHtml = '<div class="entry-sources" style="color:#aaa;">';
+          if (e.retrievedResources && e.retrievedResources.length > 0) {
+            resourceHtml += '<div style="margin:2px 0;"><strong>Retrieved:</strong> ' + e.retrievedResources.length + ' resource(s)</div>';
+          }
+          if (e.authorizedResources && e.authorizedResources.length > 0) {
+            resourceHtml += '<div style="margin:2px 0;"><strong>Authorized (ALLOW):</strong> ' +
+              e.authorizedResources.map(function(r) { return escapeHtml(r.app + '/' + r.id); }).join(', ') + '</div>';
+          }
+          if (e.sentToAdpResources && e.sentToAdpResources.length > 0) {
+            resourceHtml += '<div style="margin:2px 0;"><strong>Sent to ADP:</strong> ' +
+              e.sentToAdpResources.map(function(r) { return escapeHtml(r.app + '/' + r.id); }).join(', ') + '</div>';
+          }
+          resourceHtml += '</div>';
+        }
+
+        // v2: ADP metadata
+        var adpHtml = '';
+        if (e.adpMode) {
+          adpHtml = '<div class="entry-sources" style="color:#8ab4f8;">ADP Mode: ' + escapeHtml(e.adpMode);
+          if (e.adpRequestId) adpHtml += ' | RequestId: ' + escapeHtml(e.adpRequestId);
+          if (e.adpConversationId) adpHtml += ' | ConversationId: ' + escapeHtml(e.adpConversationId);
+          if (e.adpVisitorId) adpHtml += ' | VisitorId: ' + escapeHtml(e.adpVisitorId);
+          if (e.adpTraceId) adpHtml += ' | TraceId: ' + escapeHtml(e.adpTraceId);
+          adpHtml += '</div>';
+        }
+
+        // v2: tamper flag
+        var tamperFlag = '';
+        if (e.tampered) {
+          tamperFlag = '<div class="entry-sources" style="color:#dc3545;font-weight:bold;">&#9888; TAMPERED &#9888; This record has been flagged as tampered and cannot be repaired.</div>';
         }
 
         div.innerHTML =
@@ -181,6 +206,7 @@
             '<span class="entry-index">Entry #' + e.index + '</span>' +
             '<span class="entry-time">' + time + '</span>' +
           '</div>' +
+          tamperFlag +
           '<div class="entry-user"><strong>' + escapeHtml(e.userName || e.userId) + '</strong> <span class="role-badge">' + escapeHtml(e.userRole || '') + '</span></div>' +
           '<div class="entry-query"><strong>Q:</strong> ' + escapeHtml(e.query) + '</div>' +
           '<div class="entry-answer"><strong>A:</strong> ' + escapeHtml(answerPreview) + '</div>' +
@@ -188,8 +214,8 @@
           freshnessHtml +
           sourcesHtml +
           authHtml +
-          hiddenHtml +
-          '<div class="entry-stats">Total items: ' + (e.stats ? e.stats.total : '?') + ' | Visible: ' + (e.stats ? e.stats.visible : '?') + ' | Hidden: ' + (e.stats ? e.stats.hidden : '?') + '</div>' +
+          resourceHtml +
+          adpHtml +
           '<div class="entry-fingerprint">fingerprint: ' + (e.fingerprint || '').substring(0, 32) + '...</div>' +
           '<div class="entry-fingerprint">prev: ' + (e.previousFingerprint ? (e.previousFingerprint.substring(0, 32) + '...') : 'null (genesis)') + '</div>';
 
@@ -226,20 +252,6 @@
           statusBox.className = 'status-box tampered';
           statusBox.textContent = 'WARNING: An entry has been tampered with. Click "Verify Integrity" to detect it.';
         });
-      });
-    }
-
-    function repairDiary() {
-      fetch('/api/diary/repair', { method: 'POST' }).then(function(r) { return r.json(); }).then(function(data) {
-        alert(data.message);
-        loadDiary();
-      });
-    }
-
-    function clearDiary() {
-      if (!confirm('Clear all audit entries?')) return;
-      fetch('/api/diary/clear', { method: 'POST' }).then(function(r) { return r.json(); }).then(function(data) {
-        loadDiary();
       });
     }
 

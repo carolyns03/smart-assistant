@@ -2,6 +2,7 @@
   "overrides": {
     "user-junior": {
       "slack": {
+        "access": "channel-based",
         "allowedChannels": [
           "#general",
           "#engineering",
@@ -11,6 +12,10 @@
         "deniedChannels": [
           "#security-incidents"
         ]
+      },
+      "wiki": {
+        "access": "role-based",
+        "deniedItems": []
       }
     },
     "user-oncall": {
@@ -27,6 +32,19 @@
       }
     },
     "user-contractor": {
+      "slack": {
+        "allowedChannels": [
+          "#general",
+          "#random",
+          "#design"
+        ],
+        "deniedChannels": [
+          "#engineering",
+          "#security-incidents"
+        ]
+      }
+    },
+    "user-custservice": {
       "slack": {
         "allowedChannels": [
           "#general",
@@ -61,20 +79,6 @@
           "#security-incidents"
         ],
         "deniedChannels": []
-      }
-    },
-    "user-custservice": {
-      "slack": {
-        "access": "channel-based",
-        "allowedChannels": [
-          "#general",
-          "#random",
-          "#design"
-        ],
-        "deniedChannels": [
-          "#engineering",
-          "#security-incidents"
-        ]
       }
     }
   }
