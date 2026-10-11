@@ -35,19 +35,25 @@ function driveRequest(accessToken, apiPath) {
       },
     };
 
-    var req = https.request(options, function (res) {
-      var data = '';
-      res.on('data', function (chunk) { data += chunk; });
-      res.on('end', function () {
-        try {
-          var parsed = JSON.parse(data);
-          resolve(parsed);
-        } catch (e) {
-          console.error('[Drive] Parse error:', e.message);
-          resolve(null);
-        }
+    var req;
+    try {
+      req = https.request(options, function (res) {
+        var data = '';
+        res.on('data', function (chunk) { data += chunk; });
+        res.on('end', function () {
+          try {
+            var parsed = JSON.parse(data);
+            resolve(parsed);
+          } catch (e) {
+            console.error('[Drive] Parse error:', e.message);
+            resolve(null);
+          }
+        });
       });
-    });
+    } catch (e) {
+      console.error('[Drive] Request error:', e.message);
+      return resolve(null);
+    }
     req.on('error', function (e) {
       console.error('[Drive] Network error:', e.message);
       resolve(null);
@@ -70,7 +76,7 @@ async function fetchDriveFiles() {
   }
 
   var fields = 'files(id,name,mimeType,description,modifiedTime,owners,shared)';
-  var apiPath = '/drive/v3/files?q=' + encodeURIComponent(query) + '&pageSize=100&fields=' + encodeURIComponent(fields) + '&orderBy=modifiedTime desc';
+  var apiPath = '/drive/v3/files?q=' + encodeURIComponent(query) + '&pageSize=100&fields=' + encodeURIComponent(fields) + '&orderBy=' + encodeURIComponent('modifiedTime desc');
 
   var response = await driveRequest(accessToken, apiPath);
   if (!response || !response.files) {

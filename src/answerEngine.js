@@ -8,12 +8,12 @@
  *   Gemini receives ONLY authorized evidence. Permission filtering happens BEFORE this stage.
  *   Unauthorized content never enters the LLM context.
  *
- * Uses Google's OpenAI-compatible endpoint:
- *   https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+ * Uses Google's native Gemini API endpoint:
+ *   https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
  *
  * Requires environment variables:
  *   GEMINI_API_KEY   — your Google Gemini API key
- *   GEMINI_MODEL     — (optional) model name, defaults to 'gemini-2.0-flash'
+ *   GEMINI_MODEL     — (optional) model name, defaults to 'gemini-flash-lite-latest'
  *
  * If GEMINI_API_KEY is not set, falls back to a clearly-labelled demo mode
  * that synthesizes from the same authorized evidence.
@@ -82,8 +82,7 @@ function buildAuthorizedContext(searchResults) {
 function callGemini(query, authorizedContext, userId) {
   return new Promise(function (resolve, reject) {
     var apiKey = process.env.GEMINI_API_KEY;
-    var model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
-    var apiUrl = process.env.GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+    var model = process.env.GEMINI_MODEL || 'gemini-flash-lite-latest';
 
     // If no API key configured, use fallback mode
     if (!apiKey) {
@@ -104,25 +103,33 @@ function callGemini(query, authorizedContext, userId) {
       'INSTRUCTION:\nAnswer only from the authorized evidence provided above. ' +
       'Do not invent missing information. Cite the SOURCE_IDs used in the answer.';
 
+    // Native Gemini API format (generateContent)
     var body = JSON.stringify({
-      model: model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
+      system_instruction: {
+        parts: [{ text: systemPrompt }],
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: userPrompt }],
+        },
       ],
-      temperature: 0.2,        // Low temperature for factual, grounded answers
-      max_tokens: 1024,
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 1024,
+      },
     });
 
-    var urlObj = new URL(apiUrl);
+    // Native Gemini endpoint: /v1beta/models/{model}:generateContent
+    var apiPath = '/v1beta/models/' + model + ':generateContent';
     var options = {
-      hostname: urlObj.hostname,
-      port: urlObj.port || 443,
-      path: urlObj.pathname + (urlObj.search || ''),
+      hostname: 'generativelanguage.googleapis.com',
+      port: 443,
+      path: apiPath,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + apiKey,
+        'x-goog-api-key': apiKey,
         'Content-Length': Buffer.byteLength(body),
       },
     };
@@ -140,22 +147,22 @@ function callGemini(query, authorizedContext, userId) {
             return resolve(null); // fall back
           }
 
-          // OpenAI-compatible response format:
-          // { choices: [{ message: { content: "..." } }] }
+          // Native Gemini response format:
+          // { candidates: [{ content: { parts: [{ text: "..." }] } }] }
           var answerText = '';
-          if (parsed.choices && parsed.choices[0] && parsed.choices[0].message) {
-            answerText = parsed.choices[0].message.content || '';
-          } else if (parsed.candidates && parsed.candidates[0]) {
-            // Fallback to native Gemini format just in case
-            answerText = parsed.candidates[0].content.parts[0].text || '';
+          if (parsed.candidates && parsed.candidates[0]) {
+            var parts = parsed.candidates[0].content && parsed.candidates[0].content.parts;
+            if (parts && parts.length > 0) {
+              answerText = parts.map(function (p) { return p.text || ''; }).join('');
+            }
           }
 
           resolve({
             answer: answerText,
-            requestId: parsed.id || parsed.requestId || null,
+            requestId: parsed.responseId || null,
             conversationId: 'conv-' + userId,
             visitorId: userId,
-            traceId: parsed.model || model,
+            traceId: parsed.modelVersion || model,
             mode: 'gemini',
           });
         } catch (e) {
