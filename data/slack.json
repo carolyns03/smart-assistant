@@ -1,0 +1,162 @@
+[
+  {
+    "id": "slack-001",
+    "channel": "#general",
+    "author": "CEO Rachel",
+    "timestamp": "2026-10-01T09:00:00Z",
+    "content": "Good morning team! Reminder: all-hands meeting this Friday at 2pm. We'll be covering Q3 results and Q4 plans. Please submit your team updates by Thursday EOD.",
+    "tags": ["announcement", "general"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
+  },
+  {
+    "id": "slack-002",
+    "channel": "#engineering",
+    "author": "Sarah Chen",
+    "timestamp": "2026-10-01T10:30:00Z",
+    "content": "Heads up: pushing the login fix to prod this afternoon. Will monitor for 30 min after. If anyone sees issues, ping me directly.",
+    "tags": ["engineering", "deploy"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "slack-003",
+    "channel": "#engineering",
+    "author": "Jennifer Park",
+    "timestamp": "2026-10-01T14:15:00Z",
+    "content": "The PG migration is going well on staging. Running the full test suite now. If tests pass, we'll schedule the production migration for this weekend during the maintenance window.",
+    "tags": ["engineering", "database"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "slack-004",
+    "channel": "#security-incidents",
+    "author": "David Okafor",
+    "timestamp": "2026-10-01T16:00:00Z",
+    "content": "Update on the anomalous API traffic: we've blocked the IP and are investigating. The traffic pattern suggests an automated scraper, not a compromised account. Will have a full report by EOD tomorrow. Keeping this channel updated.",
+    "tags": ["security", "incident", "secret"],
+    "restricted": true,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "slack-005",
+    "channel": "#random",
+    "author": "Mike Rodriguez",
+    "timestamp": "2026-10-01T11:45:00Z",
+    "content": "Someone left a cake in the kitchen. It says 'Sorry for the 502s'. I think the staging server is apologizing.",
+    "tags": ["social", "random"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
+  },
+  {
+    "id": "slack-006",
+    "channel": "#general",
+    "author": "HR Bot",
+    "timestamp": "2026-10-01T08:00:00Z",
+    "content": "Open enrollment starts October 15! Review your benefits at benefits.company.internal. Changes must be submitted by October 31. Questions? Come to the HR office hours on Wednesday.",
+    "tags": ["hr", "benefits", "general"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
+  },
+  {
+    "id": "slack-007",
+    "channel": "#engineering",
+    "author": "Sarah Chen",
+    "timestamp": "2026-10-01T15:30:00Z",
+    "content": "Found the memory leak! The websocket pool wasn't cleaning up closed connections. Fix is in PR #2841. Reviewing now. This should fix the staging 502s.",
+    "tags": ["engineering", "bug", "fix"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "slack-008",
+    "channel": "#security-incidents",
+    "author": "David Okafor",
+    "timestamp": "2026-10-01T17:30:00Z",
+    "content": "Confirmed: the S3 bucket audit found 3 buckets with public read access. Two were test buckets (no sensitive data), one was the user uploads bucket (now secured). Implementing AWS Config rules to prevent recurrence. Report filed.",
+    "tags": ["security", "s3", "incident", "secret"],
+    "restricted": true,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "slack-009",
+    "channel": "#general",
+    "author": "CEO Rachel",
+    "timestamp": "2026-09-30T17:00:00Z",
+    "content": "Great work everyone on closing Q3! We hit 112% of our revenue target. The Acme Corp deal was a game-changer. Let's keep the momentum going in Q4. Details Friday at all-hands.",
+    "tags": ["announcement", "business", "general"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
+  },
+  {
+    "id": "slack-010",
+    "channel": "#design",
+    "author": "Lisa Bergstrom",
+    "timestamp": "2026-10-01T13:00:00Z",
+    "content": "New brand assets are uploaded to the shared drive. Please use the updated logo files going forward. The old logo had incorrect spacing. Design tokens are also updated in Figma.",
+    "tags": ["design", "brand", "assets"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
+  },
+  {
+    "id": "slack-011",
+    "channel": "#security-incidents",
+    "author": "David Okafor",
+    "timestamp": "2026-10-02T09:00:00Z",
+    "content": "Morning update: the scraper IP was traced to a data broker. Legal is sending a cease and desist. We've also added the IP range to our blocklist and enabled WAF rules for automated scraping detection. No data was exfiltrated beyond public profiles.",
+    "tags": ["security", "incident", "legal", "secret"],
+    "restricted": true,
+    "allowedRoles": ["security_team", "compliance_officer"]
+  },
+  {
+    "id": "slack-012",
+    "channel": "#engineering",
+    "author": "Jennifer Park",
+    "timestamp": "2026-10-02T10:00:00Z",
+    "content": "PG migration tests passed on staging! Scheduling production migration for Saturday 2-4am ET. I'll be on-call. Rollback plan is ready if anything goes wrong. Slack me if you have concerns.",
+    "tags": ["engineering", "database", "migration"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "slack-013",
+    "channel": "#general",
+    "author": "HR Bot",
+    "timestamp": "2026-10-02T08:00:00Z",
+    "content": "Don't forget: flu shot clinic on Wednesday in the 2nd floor conference room. Free for all employees. Sign up at the HR portal. Walk-ins welcome too!",
+    "tags": ["hr", "wellness", "general"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
+  },
+  {
+    "id": "slack-014",
+    "channel": "#engineering",
+    "author": "Mike Rodriguez",
+    "timestamp": "2026-10-02T11:20:00Z",
+    "content": "Stripe integration is live in production! Monitoring dashboard looks clean, payment success rate is 99.2%. Nice work everyone who helped with the migration.",
+    "tags": ["engineering", "payments", "success"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  },
+  {
+    "id": "slack-015",
+    "channel": "#general",
+    "author": "CEO Rachel",
+    "timestamp": "2026-10-02T14:00:00Z",
+    "content": "Quick reminder: please fill out the employee engagement survey by end of next week. Your feedback shapes our culture initiatives. It's anonymous and takes 5 minutes. Link in the HR portal.",
+    "tags": ["hr", "survey", "general"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "contractor", "security_team", "compliance_officer", "customer_service"]
+  },
+  {
+    "id": "slack-016",
+    "channel": "#engineering",
+    "author": "Jennifer Park",
+    "timestamp": "2026-10-04T12:50:00Z",
+    "content": "Payment service is having intermittent errors! Error rate jumped to 3%. Investigating now. If anyone has the latest runbook, please share it.",
+    "tags": ["engineering", "payments", "incident"],
+    "restricted": false,
+    "allowedRoles": ["junior_engineer", "security_team", "compliance_officer"]
+  }
+]

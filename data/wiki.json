@@ -1,0 +1,340 @@
+[
+  {
+    "id": "wiki-001",
+    "title": "Company Onboarding Guide",
+    "content": "Welcome to the company! This guide covers your first week: setting up your laptop, accessing email, joining Slack channels, and meeting your team. HR will schedule orientation on day one.",
+    "tags": [
+      "onboarding",
+      "hr",
+      "general"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "contractor",
+      "security_team",
+      "compliance_officer",
+      "customer_service"
+    ]
+  },
+  {
+    "id": "wiki-002",
+    "title": "Engineering Coding Standards",
+    "content": "All code must follow our style guide: 2-space indentation, semicolons required, no var (use let/const), functions must be under 50 lines, and all PRs need at least one reviewer.",
+    "tags": [
+      "engineering",
+      "standards",
+      "code"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-003",
+    "title": "Deployment Runbook",
+    "content": "To deploy: 1) Run tests. 2) Create PR to main. 3) CI runs automatically. 4) Monitor dashboards. 5) If errors, rollback with ./rollback.sh. Always post in #engineering before deploying!",
+    "tags": [
+      "devops",
+      "deployment",
+      "runbook"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "security_team",
+      "compliance_officer"
+    ],
+    "lastUpdated": "2026-10-04T06:00:00Z"
+  },
+  {
+    "id": "wiki-004",
+    "title": "Quarterly Business Review Q3 2026",
+    "content": "Revenue is up 12% YoY. Key wins: Enterprise deal with Acme Corp ($2M ARR), launched v2 of our API. Challenges: churn in SMB segment, hiring lag in engineering. Focus areas for Q4: retention, platform stability.",
+    "tags": [
+      "business",
+      "finance",
+      "quarterly"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-005",
+    "title": "Data Breach Incident Report - September 2026",
+    "content": "On Sept 14, we detected unauthorized access to the user database. Approximately 8,000 user records including emails and hashed passwords were exfiltrated. Root cause: misconfigured S3 bucket. Remediation: bucket secured, passwords force-reset, authorities notified. Post-mortem attached.",
+    "tags": [
+      "security",
+      "incident",
+      "breach",
+      "secret"
+    ],
+    "restricted": true,
+    "allowedRoles": [
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-006",
+    "title": "Office Floor Plan",
+    "content": "Ground floor: reception, conference rooms A-D. First floor: engineering (desks 1-40), kitchen. Second floor: sales, marketing, executive offices. Third floor: security operations center (restricted access).",
+    "tags": [
+      "office",
+      "facilities",
+      "general"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "contractor",
+      "security_team",
+      "compliance_officer",
+      "customer_service"
+    ]
+  },
+  {
+    "id": "wiki-007",
+    "title": "VPN Setup Instructions",
+    "content": "Download the VPN client from the IT portal. Use your SSO credentials. Connect to vpn.company.internal. If you get certificate errors, contact IT support. VPN is required for accessing internal systems remotely.",
+    "tags": [
+      "it",
+      "vpn",
+      "remote",
+      "general"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "contractor",
+      "security_team",
+      "compliance_officer",
+      "customer_service"
+    ]
+  },
+  {
+    "id": "wiki-008",
+    "title": "API Rate Limiting Policy",
+    "content": "All public API endpoints are rate-limited: 100 requests/minute for free tier, 1000/minute for Pro, unlimited for Enterprise. Rate limit headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset.",
+    "tags": [
+      "api",
+      "engineering",
+      "policy"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-009",
+    "title": "Security Incident Response Plan",
+    "content": "Phase 1: Detect & Triage (SOC monitors alerts). Phase 2: Contain (isolate affected systems). Phase 3: Eradicate (remove threat). Phase 4: Recover (restore services). Phase 5: Post-incident review within 5 business days. All incidents logged in the IR tracker.",
+    "tags": [
+      "security",
+      "incident",
+      "response",
+      "secret"
+    ],
+    "restricted": true,
+    "allowedRoles": [
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-010",
+    "title": "Holiday Calendar 2026",
+    "content": "Company holidays: New Year's Day (Jan 1), MLK Day (Jan 19), Memorial Day (May 25), Independence Day (Jul 3-4), Labor Day (Sep 7), Thanksgiving (Nov 26-27), Christmas (Dec 24-25). Floating holidays: 2 per employee.",
+    "tags": [
+      "hr",
+      "calendar",
+      "general"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "contractor",
+      "security_team",
+      "compliance_officer",
+      "customer_service"
+    ]
+  },
+  {
+    "id": "wiki-011",
+    "title": "Brand Guidelines",
+    "content": "Logo colors: primary #1A73E8, secondary #FF6D00. Font: Inter for all materials. Logo must have minimum clear space equal to the height of the 'o' in the logo. Never stretch or recolor the logo.",
+    "tags": [
+      "design",
+      "brand",
+      "general"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "contractor",
+      "security_team",
+      "compliance_officer",
+      "customer_service"
+    ]
+  },
+  {
+    "id": "wiki-012",
+    "title": "Vendor Contract Template",
+    "content": "Standard MSA template for vendors. Includes: scope of work, payment terms (Net 30), IP ownership, confidentiality clause, data processing addendum (DPA), termination (30 days notice). Legal must review all modifications.",
+    "tags": [
+      "legal",
+      "vendor",
+      "contract"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-013",
+    "title": "Bug Triage Process",
+    "content": "Bugs are triaged daily at 10am. Severity levels: P0 (site down, fix immediately), P1 (major feature broken, fix within 24h), P2 (minor feature, fix within sprint), P3 (cosmetic, backlog). Use the bug report template in Jira.",
+    "tags": [
+      "engineering",
+      "process",
+      "bugs"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-014",
+    "title": "Employee Handbook",
+    "content": "Covers: code of conduct, anti-harassment policy, remote work policy (up to 3 days/week), PTO accrual (15 days/year for years 1-3), benefits overview, grievance procedure, at-will employment terms.",
+    "tags": [
+      "hr",
+      "handbook",
+      "general"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "contractor",
+      "security_team",
+      "compliance_officer",
+      "customer_service"
+    ]
+  },
+  {
+    "id": "wiki-015",
+    "title": "Disaster Recovery Plan",
+    "content": "RPO: 1 hour, RTO: 4 hours. Primary: us-east-1. DR: eu-west-1. Failover triggered manually by on-call SRE after confirming primary is down. Database replication is async with 1-minute lag. Full DR test quarterly. Last test: July 2026 (passed).",
+    "tags": [
+      "devops",
+      "disaster",
+      "recovery",
+      "secret"
+    ],
+    "restricted": true,
+    "allowedRoles": [
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-016",
+    "title": "Payment Service Incident Runbook",
+    "content": "Payment-service incident response runbook. Step 1: Check Stripe dashboard for error rate. Step 2: Verify webhook endpoint is reachable. Step 3: If payment gateway is down, enable circuit breaker and queue payments. Step 4: NEW FAILVER STEP - Failover to backup payment gateway at pg-failover.company.internal if primary is down for more than 5 minutes. Step 5: Post incident status in #engineering. Step 6: Create P0 ticket in Jira. This runbook was updated at 1:00 PM today with the new failover step.",
+    "tags": [
+      "devops",
+      "payments",
+      "incident",
+      "runbook"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "security_team",
+      "compliance_officer"
+    ],
+    "lastUpdated": "2026-10-11T07:50:39.946Z"
+  },
+  {
+    "id": "wiki-017",
+    "title": "Bank Account Information - Customer Records",
+    "content": "Customer bank account details for payment processing. Account: Acme Corp, Bank: DBS Singapore, Account Number: 027-1234567-001, SWIFT: DBSSSGPX. Account: Globex Inc, Bank: OCBC, Account Number: 555-9876543-002, SWIFT: OCBCSGSG. These records contain sensitive PII and are restricted to compliance and security teams only.",
+    "tags": [
+      "finance",
+      "bank",
+      "pii",
+      "sensitive",
+      "secret"
+    ],
+    "restricted": true,
+    "allowedRoles": [
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-018",
+    "title": "Product Requirements Document - Q4 2026",
+    "content": "Product requirements for Q4 2026 release: 1) Real-time collaboration feature with WebSocket sync. 2) AI-powered search across enterprise knowledge. 3) Enterprise SSO with SAML 2.0. 4) Mobile push notifications. 5) Audit trail with tamper-evident logging. Priority: AI search and SSO are P0, others are P1. Target ship date: December 15, 2026.",
+    "tags": [
+      "product",
+      "requirements",
+      "roadmap"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "security_team",
+      "compliance_officer"
+    ]
+  },
+  {
+    "id": "wiki-019",
+    "title": "Customer Service FAQ",
+    "content": "Common customer questions: Q: How do I reset my password? A: Click 'Forgot Password' on the login page. Q: How do I upgrade my plan? A: Go to Settings > Billing > Upgrade. Q: How do I contact support? A: Email support@company.com or use the in-app chat. These are public-facing answers for customer service representatives.",
+    "tags": [
+      "customer",
+      "faq",
+      "general"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "contractor",
+      "security_team",
+      "compliance_officer",
+      "customer_service"
+    ]
+  },
+  {
+    "id": "wiki-020",
+    "title": "Database Migration Project Plan",
+    "content": "Migration from PostgreSQL 13 to 15. Phase 1 (completed): test all queries on PG15 staging. Phase 2 (in progress): update connection pooling and verify backup/restore. Phase 3 (pending): production migration during Saturday maintenance window. Blocker: need to verify replication lag is under 1 minute before proceeding.",
+    "tags": [
+      "engineering",
+      "database",
+      "migration",
+      "project"
+    ],
+    "restricted": false,
+    "allowedRoles": [
+      "junior_engineer",
+      "security_team",
+      "compliance_officer"
+    ]
+  }
+]

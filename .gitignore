@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+*.log
+.env
+.env.local
+.env.*.local
+
+# Runtime-generated audit diary (grows with usage; contains user queries & LLM responses)
+data/diary.json

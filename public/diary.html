@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Trail — Internal Brain</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e0e0e8; }
+    .header { background: #1a1a2e; color: white; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1a73e8; }
+    .header h1 { font-size: 20px; display: flex; align-items: center; gap: 8px; }
+    .header .logo { font-size: 24px; }
+    .header nav a { color: #a0a0c0; text-decoration: none; margin-left: 24px; font-size: 14px; }
+    .header nav a:hover, .header nav a.active { color: white; }
+    .container { max-width: 1050px; margin: 0 auto; padding: 20px; }
+    .controls { background: #1a1a2e; border-radius: 10px; padding: 16px; margin-bottom: 16px; border: 1px solid #2a2a4a; }
+    .controls-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+    .controls-row:last-child { margin-bottom: 0; }
+    .controls button { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .btn-verify { background: #1a73e8; color: white; }
+    .btn-tamper { background: #dc3545; color: white; }
+    .btn-repair { background: #28a745; color: white; }
+    .btn-clear { background: #6c757d; color: white; }
+    .btn-refresh { background: #2a2a4a; color: #c0c0d0; border: 1px solid #3a3a5a; }
+    .search-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .search-row select { padding: 8px 12px; border: 1px solid #3a3a5a; border-radius: 6px; font-size: 13px; background: #0f1117; color: #e0e0e8; }
+    .search-row button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; background: #1a73e8; color: white; }
+    .status-box { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; font-weight: 600; }
+    .status-box.valid { background: #1a3a1a; color: #6bcf6b; border: 1px solid #2a5a2a; }
+    .status-box.tampered { background: #3a1a1a; color: #ff6b6b; border: 1px solid #5a2a2a; }
+    .status-box.checking { background: #3a3a1a; color: #ffc107; border: 1px solid #5a5a2a; }
+    .entries-list { background: #1a1a2e; border-radius: 10px; border: 1px solid #2a2a4a; overflow: hidden; }
+    .entry { padding: 16px; border-bottom: 1px solid #2a2a4a; }
+    .entry:last-child { border-bottom: none; }
+    .entry.tampered { background: #2a1a1a; border-left: 4px solid #dc3545; }
+    .entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .entry-index { font-weight: 700; font-size: 14px; color: #8ab4f8; }
+    .entry-time { font-size: 12px; color: #888; }
+    .entry-user { font-size: 13px; margin-bottom: 4px; }
+    .entry-user .role-badge { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; background: #2a2a4a; margin-left: 6px; color: #c0c0d0; }
+    .entry-query { font-size: 13px; color: #e0e0e8; margin-bottom: 4px; }
+    .entry-query strong { color: #8ab4f8; }
+    .entry-answer { font-size: 12px; color: #999; margin-bottom: 6px; max-height: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .entry-platforms { font-size: 11px; color: #8ab4f8; margin-bottom: 4px; }
+    .entry-sources { font-size: 11px; color: #aaa; margin-bottom: 4px; }
+    .entry-source-tag { display: inline-block; background: #162040; color: #8ab4f8; padding: 2px 6px; border-radius: 4px; margin: 1px; font-size: 10px; }
+    .entry-auth { font-size: 11px; color: #ffc107; margin-bottom: 4px; }
+    .entry-auth .auth-decision { font-weight: 700; }
+    .entry-auth .auth-allowed { color: #28a745; }
+    .entry-stats { font-size: 10px; color: #666; }
+    .entry-fingerprint { font-size: 10px; color: #555; font-family: monospace; margin-top: 4px; word-break: break-all; }
+    .empty-state { text-align: center; color: #555; padding: 40px; font-size: 14px; }
+    .info-banner { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 12px; color: #aaa; }
+    .info-banner strong { color: #8ab4f8; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><span class="logo">🧠</span> Audit Trail</h1>
+    <nav>
+      <a href="/">Chat</a>
+      <a href="/diary.html" class="active">Audit Trail</a>
+    </nav>
+  </div>
+
+  <div class="container">
+    <div class="info-banner">
+      <strong>Scenario 5 — Audit Inquiry:</strong> A compliance officer can reconstruct what any user asked, what was retrieved on their behalf, what was answered, timestamps, authorization decisions, and which platform the data came from. Search by user to see their complete activity.
+    </div>
+
+    <div class="controls">
+      <div class="controls-row">
+        <button class="btn-verify" onclick="verifyDiary()">Verify Integrity</button>
+        <button class="btn-tamper" onclick="tamperRandom()">Tamper (demo)</button>
+        <button class="btn-refresh" onclick="loadDiary()">Refresh</button>
+      </div>
+      <div class="controls-row search-row">
+        <label style="font-size:13px;color:#8ab4f8;font-weight:600;">Search by user:</label>
+        <select id="userFilter" onchange="searchByUser()">
+          <option value="">All users</option>
+        </select>
+        <button onclick="searchByUser()">Search</button>
+        <span style="font-size:12px;color:#666;" id="searchCount"></span>
+      </div>
+    </div>
+
+    <div id="statusBox" class="status-box" style="display:none;"></div>
+
+    <div class="entries-list" id="entriesList">
+      <div class="empty-state">Loading audit trail...</div>
+    </div>
+  </div>
+
+  <script>
+    var allUsers = [];
+
+    function loadUsersForFilter() {
+      fetch('/api/users').then(function(r) { return r.json(); }).then(function(data) {
+        allUsers = data;
+        var sel = document.getElementById('userFilter');
+        sel.innerHTML = '<option value="">All users</option>';
+        data.forEach(function(u) {
+          sel.innerHTML += '<option value="' + u.id + '">' + u.name + ' (' + u.title + ')</option>';
+        });
+      });
+    }
+
+    function loadDiary() {
+      fetch('/api/diary').then(function(r) { return r.json(); }).then(function(data) {
+        renderEntries(data.entries || [], -1);
+        document.getElementById('statusBox').style.display = 'none';
+        document.getElementById('searchCount').textContent = (data.entries || []).length + ' entries';
+      });
+    }
+
+    function searchByUser() {
+      var userId = document.getElementById('userFilter').value;
+      if (!userId) { loadDiary(); return; }
+      fetch('/api/diary/search?userId=' + encodeURIComponent(userId))
+        .then(function(r) { return r.json(); }).then(function(data) {
+          renderEntries(data.entries, -1);
+          document.getElementById('searchCount').textContent = data.count + ' entries for this user';
+          document.getElementById('statusBox').style.display = 'none';
+        });
+    }
+
+    function renderEntries(entries, tamperedIndex) {
+      var container = document.getElementById('entriesList');
+      if (!entries || entries.length === 0) {
+        container.innerHTML = '<div class="empty-state">No audit entries yet. Ask questions in the Chat to generate audit records.</div>';
+        return;
+      }
+      container.innerHTML = '';
+      entries.forEach(function(e) {
+        var div = document.createElement('div');
+        div.className = 'entry';
+        if (e.tampered || e.index === tamperedIndex) div.className += ' tampered';
+        var time = new Date(e.timestamp).toLocaleString();
+        var answerPreview = (e.answer || '').substring(0, 150);
+        if (e.answer && e.answer.length > 150) answerPreview += '...';
+
+        var platformsHtml = '';
+        if (e.platforms && e.platforms.length > 0) {
+          platformsHtml = '<div class="entry-platforms">Platforms: ' + e.platforms.join(', ') + '</div>';
+        }
+
+        var sourcesHtml = '';
+        if (e.sources && e.sources.length > 0) {
+          sourcesHtml = '<div class="entry-sources">Sources: ';
+          e.sources.forEach(function(s) {
+            var appName = ({wiki:'Confluence',jira:'Jira',slack:'Slack',drive:'Drive'})[s.app] || s.app;
+            sourcesHtml += '<span class="entry-source-tag">' + appName + ': ' + escapeHtml(s.title) + '</span>';
+          });
+          sourcesHtml += '</div>';
+        }
+
+        var freshnessHtml = '';
+        if (e.freshness) {
+          freshnessHtml = '<div class="entry-platforms" style="color:#28a745;">Latest data: ' + new Date(e.freshness).toLocaleString() + '</div>';
+        }
+
+        var authHtml = '';
+        if (e.authorization) {
+          authHtml = '<div class="entry-auth">Authorization: <span class="auth-decision auth-allowed">' + e.authorization.decision +
+            '</span> | Method: ' + e.authorization.method +
+            ' | Filtered before ADP: ' + (e.authorization.filteredBeforeADP ? 'Yes' : 'No') + '</div>';
+        }
+
+        // v2: three-tier resource tracking
+        var resourceHtml = '';
+        if (e.retrievedResources || e.authorizedResources || e.sentToAdpResources) {
+          resourceHtml = '<div class="entry-sources" style="color:#aaa;">';
+          if (e.retrievedResources && e.retrievedResources.length > 0) {
+            resourceHtml += '<div style="margin:2px 0;"><strong>Retrieved:</strong> ' + e.retrievedResources.length + ' resource(s)</div>';
+          }
+          if (e.authorizedResources && e.authorizedResources.length > 0) {
+            resourceHtml += '<div style="margin:2px 0;"><strong>Authorized (ALLOW):</strong> ' +
+              e.authorizedResources.map(function(r) { return escapeHtml(r.app + '/' + r.id); }).join(', ') + '</div>';
+          }
+          if (e.sentToAdpResources && e.sentToAdpResources.length > 0) {
+            resourceHtml += '<div style="margin:2px 0;"><strong>Sent to ADP:</strong> ' +
+              e.sentToAdpResources.map(function(r) { return escapeHtml(r.app + '/' + r.id); }).join(', ') + '</div>';
+          }
+          resourceHtml += '</div>';
+        }
+
+        // v2: ADP metadata
+        var adpHtml = '';
+        if (e.adpMode) {
+          adpHtml = '<div class="entry-sources" style="color:#8ab4f8;">ADP Mode: ' + escapeHtml(e.adpMode);
+          if (e.adpRequestId) adpHtml += ' | RequestId: ' + escapeHtml(e.adpRequestId);
+          if (e.adpConversationId) adpHtml += ' | ConversationId: ' + escapeHtml(e.adpConversationId);
+          if (e.adpVisitorId) adpHtml += ' | VisitorId: ' + escapeHtml(e.adpVisitorId);
+          if (e.adpTraceId) adpHtml += ' | TraceId: ' + escapeHtml(e.adpTraceId);
+          adpHtml += '</div>';
+        }
+
+        // v2: tamper flag
+        var tamperFlag = '';
+        if (e.tampered) {
+          tamperFlag = '<div class="entry-sources" style="color:#dc3545;font-weight:bold;">&#9888; TAMPERED &#9888; This record has been flagged as tampered and cannot be repaired.</div>';
+        }
+
+        div.innerHTML =
+          '<div class="entry-header">' +
+            '<span class="entry-index">Entry #' + e.index + '</span>' +
+            '<span class="entry-time">' + time + '</span>' +
+          '</div>' +
+          tamperFlag +
+          '<div class="entry-user"><strong>' + escapeHtml(e.userName || e.userId) + '</strong> <span class="role-badge">' + escapeHtml(e.userRole || '') + '</span></div>' +
+          '<div class="entry-query"><strong>Q:</strong> ' + escapeHtml(e.query) + '</div>' +
+          '<div class="entry-answer"><strong>A:</strong> ' + escapeHtml(answerPreview) + '</div>' +
+          platformsHtml +
+          freshnessHtml +
+          sourcesHtml +
+          authHtml +
+          resourceHtml +
+          adpHtml +
+          '<div class="entry-fingerprint">fingerprint: ' + (e.fingerprint || '').substring(0, 32) + '...</div>' +
+          '<div class="entry-fingerprint">prev: ' + (e.previousFingerprint ? (e.previousFingerprint.substring(0, 32) + '...') : 'null (genesis)') + '</div>';
+
+        container.appendChild(div);
+      });
+    }
+
+    function verifyDiary() {
+      var statusBox = document.getElementById('statusBox');
+      statusBox.style.display = 'block';
+      statusBox.className = 'status-box checking';
+      statusBox.textContent = 'Verifying diary integrity...';
+      fetch('/api/diary/verify').then(function(r) { return r.json(); }).then(function(data) {
+        statusBox.className = data.valid ? 'status-box valid' : 'status-box tampered';
+        statusBox.textContent = data.message;
+        renderEntries(data.entries || [], data.tamperedIndex);
+      });
+    }
+
+    function tamperRandom() {
+      fetch('/api/diary').then(function(r) { return r.json(); }).then(function(data) {
+        var entries = data.entries || [];
+        if (entries.length === 0) { alert('No entries to tamper with. Ask some questions first.'); return; }
+        var randomIndex = Math.floor(Math.random() * entries.length);
+        fetch('/api/diary/tamper', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ index: randomIndex, field: 'query', newValue: '[TAMPERED] This entry was edited without authorization!' }),
+        }).then(function(r) { return r.json(); }).then(function(result) {
+          alert(result.message);
+          loadDiary();
+          var statusBox = document.getElementById('statusBox');
+          statusBox.style.display = 'block';
+          statusBox.className = 'status-box tampered';
+          statusBox.textContent = 'WARNING: An entry has been tampered with. Click "Verify Integrity" to detect it.';
+        });
+      });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    loadUsersForFilter();
+    loadDiary();
+  </script>
+</body>
+</html>
