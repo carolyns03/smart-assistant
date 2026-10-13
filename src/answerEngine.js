@@ -40,7 +40,9 @@ function buildAuthorizedContext(searchResults) {
     var app = r.app;
     var item = r.item;
     var appName = appNameMap[app] || app;
-    var sourceId = (app.toUpperCase()) + '-' + item.id;
+    // Strip any leading "app-" prefix from item.id to avoid doubled prefixes like "SLACK-slack-001"
+    var cleanItemId = item.id.replace(new RegExp('^' + app + '-', 'i'), '');
+    var sourceId = app.toUpperCase() + '-' + cleanItemId;
 
     var content = '';
     if (app === 'jira') {

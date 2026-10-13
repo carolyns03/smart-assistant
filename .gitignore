@@ -1,9 +1,25 @@
 node_modules/
 .DS_Store
 *.log
+
+# ─── Environment files (contain real API keys — NEVER commit ───
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
 
-# Runtime-generated audit diary (grows with usage; contains user queries & LLM responses)
+# ─── Runtime-generated files ───
+# Audit diary (grows with usage; contains user queries & LLM responses)
 data/diary.json
+
+# ─── IDE / editor files ───
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── OS files ───
+Thumbs.db
+desktop.ini

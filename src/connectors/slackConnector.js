@@ -130,7 +130,7 @@ async function fetchSlackMessages() {
       if (!content.trim()) continue;
 
       allMessages.push({
-        id: 'slack-' + channel.id + '-' + msg.ts.replace(/\./g, '-'),
+        id: 'slack-' + String(allMessages.length + 1).padStart(3, '0'),
         channel: '#' + channelName,
         author: author,
         timestamp: new Date(parseFloat(msg.ts) * 1000).toISOString(),
