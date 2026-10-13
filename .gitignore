@@ -2,9 +2,6 @@ node_modules/
 .DS_Store
 *.log
 
-# ─── Documentation files (not for public repo) ───
-*.md
-
 # ─── Environment files (contain real API keys — NEVER commit ───
 .env
 .env.local
