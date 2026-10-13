@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "test:security": "node tests/security-tests.js",
+    "test:integration": "node tests/integration-tests.js",
+    "test": "node tests/security-tests.js && node tests/integration-tests.js"
   },
   "dependencies": {
     "express": "^4.18.2",

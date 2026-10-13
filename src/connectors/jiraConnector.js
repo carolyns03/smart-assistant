@@ -13,12 +13,17 @@
  *   JIRA_EMAIL        — the email of your Atlassian account (used for Basic Auth)
  *   JIRA_BASE_URL     — e.g. https://yourcompany.atlassian.net
  *   JIRA_PROJECT_KEY  — (optional) limit to one project, e.g. "ENG"
+ *
+ * Features:
+ *   - Preserves issue keys, descriptions, status, URLs, and timestamps
+ *   - Handles empty projects separately from API failures
+ *   - Supports pagination
  */
 
 const https = require('https');
 
 function jiraRequest(baseUrl, email, token, apiPath) {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function (resolve) {
     var urlObj = new URL(baseUrl);
     var auth = Buffer.from(email + ':' + token, 'utf8').toString('base64');
 
@@ -37,8 +42,21 @@ function jiraRequest(baseUrl, email, token, apiPath) {
       var data = '';
       res.on('data', function (chunk) { data += chunk; });
       res.on('end', function () {
+        // Handle HTTP error codes
+        if (res.statusCode === 401 || res.statusCode === 403) {
+          console.error('[Jira] Auth error: HTTP', res.statusCode, '— check JIRA_EMAIL and JIRA_API_TOKEN');
+          return resolve(null);
+        }
+        if (res.statusCode === 404) {
+          console.error('[Jira] Not found: HTTP 404 — check JIRA_BASE_URL');
+          return resolve(null);
+        }
         try {
           var parsed = JSON.parse(data);
+          if (parsed.errorMessages && parsed.errorMessages.length > 0) {
+            console.error('[Jira] API errors:', parsed.errorMessages.join('; '));
+            return resolve(null);
+          }
           resolve(parsed);
         } catch (e) {
           console.error('[Jira] Parse error:', e.message);
@@ -57,7 +75,12 @@ function jiraRequest(baseUrl, email, token, apiPath) {
 /**
  * Fetch real Jira issues and normalize them to match jira.json data shape.
  *
- * @returns {Promise<Array>} — array of { id, title, content, status, assignee, priority, tags, restricted, allowedRoles }
+ * Distinguishes between:
+ *   - API failure (auth error, network error) → returns null (→ ERROR status)
+ *   - Empty project (API success, 0 issues) → returns [] (→ EMPTY status)
+ *   - Success with issues → returns array (→ LIVE status)
+ *
+ * @returns {Promise<Array|null>}
  */
 async function fetchJiraIssues() {
   var token = process.env.JIRA_API_TOKEN;
@@ -70,16 +93,43 @@ async function fetchJiraIssues() {
   // Build JQL query
   var jql = projectKey ? 'project = ' + projectKey + ' ORDER BY updated DESC' : 'ORDER BY updated DESC';
 
-  // Jira Cloud REST API v2
-  var apiPath = '/rest/api/2/search?jql=' + encodeURIComponent(jql) + '&maxResults=100&fields=summary,description,status,assignee,priority,labels,issuetype';
+  var allIssues = [];
+  var startAt = 0;
+  var maxResults = 50;
+  var total = null;
 
-  var response = await jiraRequest(baseUrl, email, token, apiPath);
-  if (!response || !response.issues) {
-    console.error('[Jira] No issues returned');
-    return null;
+  // Pagination loop
+  do {
+    // Jira Cloud REST API v2 — use search endpoint with pagination
+    var apiPath = '/rest/api/2/search?jql=' + encodeURIComponent(jql) +
+      '&startAt=' + startAt +
+      '&maxResults=' + maxResults +
+      '&fields=summary,description,status,assignee,priority,labels,issuetype,updated,created';
+
+    var response = await jiraRequest(baseUrl, email, token, apiPath);
+    if (!response || !response.issues) {
+      // API failure — return null so it's marked as ERROR, not EMPTY
+      console.error('[Jira] API call failed');
+      return null;
+    }
+
+    allIssues = allIssues.concat(response.issues);
+    total = response.total || 0;
+    startAt += response.issues.length;
+
+    // If we've fetched all issues, stop
+    if (response.issues.length === 0 || startAt >= total) {
+      break;
+    }
+  } while (startAt < total);
+
+  // Empty project: API succeeded but returned 0 issues
+  if (allIssues.length === 0) {
+    console.log('[Jira] No issues found (empty project)');
+    return [];
   }
 
-  var items = response.issues.map(function (issue) {
+  var items = allIssues.map(function (issue) {
     var fields = issue.fields || {};
 
     var assignee = fields.assignee ? (fields.assignee.displayName || fields.assignee.name || 'Unassigned') : 'Unassigned';
@@ -98,8 +148,14 @@ async function fetchJiraIssues() {
       return l.toLowerCase().includes('security') || l.toLowerCase().includes('vulnerability');
     });
 
+    // Build the Jira issue URL
+    var issueUrl = baseUrl + '/browse/' + issue.key;
+
+    // Use lastUpdated from the issue's updated field
+    var lastUpdated = fields.updated || new Date().toISOString();
+
     return {
-      id: issue.key,
+      id: 'jira-' + issue.key, // Use stable issue key (e.g. ENG-123)
       title: title,
       content: description || title,
       status: status,
@@ -110,6 +166,8 @@ async function fetchJiraIssues() {
       allowedRoles: isSecurity
         ? ['security_team', 'compliance_officer']
         : ['junior_engineer', 'security_team', 'compliance_officer'],
+      lastUpdated: lastUpdated,
+      sourceUrl: issueUrl,
     };
   });
 

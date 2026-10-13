@@ -65,13 +65,14 @@
 
   <div class="container">
     <div class="info-banner">
-      <strong>Scenario 5 — Audit Inquiry:</strong> A compliance officer can reconstruct what any user asked, what was retrieved on their behalf, what was answered, timestamps, authorization decisions, and which platform the data came from. Search by user to see their complete activity.
+      <strong>Scenario 5 — Audit Inquiry:</strong> A compliance officer can reconstruct what any user asked, what was retrieved on their behalf, what was answered, timestamps, authorization decisions, which platform the data came from, whether data was LIVE or MOCK, denied resource IDs, and permission changes. Search by user to see their complete activity.
     </div>
 
     <div class="controls">
       <div class="controls-row">
         <button class="btn-verify" onclick="verifyDiary()">Verify Integrity</button>
         <button class="btn-tamper" onclick="tamperRandom()">Tamper (demo)</button>
+        <button class="btn-clear" onclick="clearDiary()">Clear Diary</button>
         <button class="btn-refresh" onclick="loadDiary()">Refresh</button>
       </div>
       <div class="controls-row search-row">
@@ -163,12 +164,13 @@
         if (e.authorization) {
           authHtml = '<div class="entry-auth">Authorization: <span class="auth-decision auth-allowed">' + e.authorization.decision +
             '</span> | Method: ' + e.authorization.method +
-            ' | Filtered before ADP: ' + (e.authorization.filteredBeforeADP ? 'Yes' : 'No') + '</div>';
+            ' | Filtered before LLM: ' + (e.authorization.filteredBeforeLLM ? 'Yes' : 'No') +
+            ' | Denied: ' + (e.authorization.deniedResourceCount || 0) + ' resource(s)</div>';
         }
 
-        // v2: three-tier resource tracking
+        // v3: three-tier resource tracking (renamed from ADP to LLM)
         var resourceHtml = '';
-        if (e.retrievedResources || e.authorizedResources || e.sentToAdpResources) {
+        if (e.retrievedResources || e.authorizedResources || e.sentToLlmResources) {
           resourceHtml = '<div class="entry-sources" style="color:#aaa;">';
           if (e.retrievedResources && e.retrievedResources.length > 0) {
             resourceHtml += '<div style="margin:2px 0;"><strong>Retrieved:</strong> ' + e.retrievedResources.length + ' resource(s)</div>';
@@ -177,25 +179,61 @@
             resourceHtml += '<div style="margin:2px 0;"><strong>Authorized (ALLOW):</strong> ' +
               e.authorizedResources.map(function(r) { return escapeHtml(r.app + '/' + r.id); }).join(', ') + '</div>';
           }
-          if (e.sentToAdpResources && e.sentToAdpResources.length > 0) {
-            resourceHtml += '<div style="margin:2px 0;"><strong>Sent to ADP:</strong> ' +
-              e.sentToAdpResources.map(function(r) { return escapeHtml(r.app + '/' + r.id); }).join(', ') + '</div>';
+          if (e.sentToLlmResources && e.sentToLlmResources.length > 0) {
+            resourceHtml += '<div style="margin:2px 0;"><strong>Sent to LLM:</strong> ' +
+              e.sentToLlmResources.map(function(r) { return escapeHtml(r.app + '/' + r.id); }).join(', ') + '</div>';
           }
           resourceHtml += '</div>';
         }
 
-        // v2: ADP metadata
-        var adpHtml = '';
-        if (e.adpMode) {
-          adpHtml = '<div class="entry-sources" style="color:#8ab4f8;">ADP Mode: ' + escapeHtml(e.adpMode);
-          if (e.adpRequestId) adpHtml += ' | RequestId: ' + escapeHtml(e.adpRequestId);
-          if (e.adpConversationId) adpHtml += ' | ConversationId: ' + escapeHtml(e.adpConversationId);
-          if (e.adpVisitorId) adpHtml += ' | VisitorId: ' + escapeHtml(e.adpVisitorId);
-          if (e.adpTraceId) adpHtml += ' | TraceId: ' + escapeHtml(e.adpTraceId);
-          adpHtml += '</div>';
+        // v3: Denied items
+        var deniedHtml = '';
+        if (e.deniedItems && e.deniedItems.length > 0) {
+          deniedHtml = '<div class="entry-sources" style="color:#dc3545;">Denied resources: ' +
+            e.deniedItems.map(function(d) { return escapeHtml(d.app + '/' + d.id + ' (' + d.reason + ')'); }).join(', ') + '</div>';
         }
 
-        // v2: tamper flag
+        // v3: Provenance (LIVE/MOCK per connector)
+        var provenanceHtml = '';
+        if (e.provenance) {
+          var appNames = { wiki: 'Confluence', jira: 'Jira', slack: 'Slack', drive: 'Drive' };
+          var provParts = [];
+          for (var key of Object.keys(e.provenance)) {
+            var p = e.provenance[key];
+            var pcolor = p.status === 'LIVE' ? '#28a745' : (p.status === 'MOCK' ? '#ffc107' : '#dc3545');
+            provParts.push('<span style="color:' + pcolor + ';">' + (appNames[key] || key) + ': ' + p.status + '</span>');
+          }
+          if (provParts.length > 0) {
+            provenanceHtml = '<div class="entry-sources" style="color:#888;">Provenance: ' + provParts.join(' | ') + '</div>';
+          }
+        }
+
+        // v3: LLM metadata (renamed from ADP)
+        var llmHtml = '';
+        if (e.llmMode) {
+          llmHtml = '<div class="entry-sources" style="color:#8ab4f8;">LLM Mode: ' + escapeHtml(e.llmMode);
+          if (e.llmRequestId) llmHtml += ' | RequestId: ' + escapeHtml(e.llmRequestId);
+          if (e.llmConversationId) llmHtml += ' | ConversationId: ' + escapeHtml(e.llmConversationId);
+          if (e.llmVisitorId) llmHtml += ' | VisitorId: ' + escapeHtml(e.llmVisitorId);
+          if (e.llmTraceId) llmHtml += ' | TraceId: ' + escapeHtml(e.llmTraceId);
+          llmHtml += '</div>';
+        }
+
+        // v3: Permission changes
+        var permChangeHtml = '';
+        if (e.permissionChange) {
+          var pc = e.permissionChange;
+          permChangeHtml = '<div class="entry-sources" style="color:#ffc107;font-weight:bold;">Permission Change: ' +
+            escapeHtml(pc.type) + ' | Actor: ' + escapeHtml(pc.actor || 'system');
+          if (pc.type === 'ROLE_CHANGE') {
+            permChangeHtml += ' | ' + escapeHtml(pc.oldRole) + ' &rarr; ' + escapeHtml(pc.newRole);
+          } else if (pc.type === 'RESOURCE_OVERRIDE') {
+            permChangeHtml += ' | ' + escapeHtml(pc.appKey + '/' + pc.itemId) + ' &rarr; ' + escapeHtml(pc.action.toUpperCase());
+          }
+          permChangeHtml += '</div>';
+        }
+
+        // v3: tamper flag
         var tamperFlag = '';
         if (e.tampered) {
           tamperFlag = '<div class="entry-sources" style="color:#dc3545;font-weight:bold;">&#9888; TAMPERED &#9888; This record has been flagged as tampered and cannot be repaired.</div>';
@@ -207,6 +245,7 @@
             '<span class="entry-time">' + time + '</span>' +
           '</div>' +
           tamperFlag +
+          permChangeHtml +
           '<div class="entry-user"><strong>' + escapeHtml(e.userName || e.userId) + '</strong> <span class="role-badge">' + escapeHtml(e.userRole || '') + '</span></div>' +
           '<div class="entry-query"><strong>Q:</strong> ' + escapeHtml(e.query) + '</div>' +
           '<div class="entry-answer"><strong>A:</strong> ' + escapeHtml(answerPreview) + '</div>' +
@@ -214,8 +253,10 @@
           freshnessHtml +
           sourcesHtml +
           authHtml +
+          deniedHtml +
           resourceHtml +
-          adpHtml +
+          provenanceHtml +
+          llmHtml +
           '<div class="entry-fingerprint">fingerprint: ' + (e.fingerprint || '').substring(0, 32) + '...</div>' +
           '<div class="entry-fingerprint">prev: ' + (e.previousFingerprint ? (e.previousFingerprint.substring(0, 32) + '...') : 'null (genesis)') + '</div>';
 
@@ -242,16 +283,35 @@
         var randomIndex = Math.floor(Math.random() * entries.length);
         fetch('/api/diary/tamper', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-admin-user-id': 'user-compliance' },
           body: JSON.stringify({ index: randomIndex, field: 'query', newValue: '[TAMPERED] This entry was edited without authorization!' }),
-        }).then(function(r) { return r.json(); }).then(function(result) {
+        }).then(function(r) {
+          if (!r.ok) { return r.json().then(function(d) { throw new Error(d.error); }); }
+          return r.json();
+        }).then(function(result) {
           alert(result.message);
           loadDiary();
           var statusBox = document.getElementById('statusBox');
           statusBox.style.display = 'block';
           statusBox.className = 'status-box tampered';
           statusBox.textContent = 'WARNING: An entry has been tampered with. Click "Verify Integrity" to detect it.';
+        }).catch(function(err) {
+          alert('Tamper failed: ' + err.message);
         });
+      });
+    }
+
+    function clearDiary() {
+      if (!confirm('Clear all audit entries? This cannot be undone.')) return;
+      fetch('/api/reset', {
+        method: 'POST',
+        headers: { 'x-admin-user-id': 'user-compliance' },
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        loadDiary();
+        var statusBox = document.getElementById('statusBox');
+        statusBox.style.display = 'block';
+        statusBox.className = 'status-box valid';
+        statusBox.textContent = 'Diary cleared and permissions reset.';
       });
     }
 

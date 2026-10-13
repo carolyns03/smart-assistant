@@ -120,6 +120,8 @@ function searchItems(filteredData, query) {
             assignee: item.assignee,
             priority: item.priority,
             lastUpdated: item.lastUpdated,
+            sourceUrl: item.sourceUrl || item.permalink || null,
+            timestamp: item.timestamp || item.lastUpdated || null,
           },
           score: score,
         });

@@ -2,6 +2,7 @@
   "overrides": {
     "user-junior": {
       "slack": {
+        "access": "channel-based",
         "allowedChannels": [
           "#general",
           "#engineering",
@@ -10,11 +11,13 @@
         ],
         "deniedChannels": [
           "#security-incidents"
-        ]
+        ],
+        "deniedItems": []
       }
     },
     "user-oncall": {
       "slack": {
+        "access": "channel-based",
         "allowedChannels": [
           "#general",
           "#engineering",
@@ -23,11 +26,13 @@
         ],
         "deniedChannels": [
           "#security-incidents"
-        ]
+        ],
+        "deniedItems": []
       }
     },
     "user-contractor": {
       "slack": {
+        "access": "channel-based",
         "allowedChannels": [
           "#general",
           "#random",
@@ -36,11 +41,13 @@
         "deniedChannels": [
           "#engineering",
           "#security-incidents"
-        ]
+        ],
+        "deniedItems": []
       }
     },
     "user-custservice": {
       "slack": {
+        "access": "channel-based",
         "allowedChannels": [
           "#general",
           "#random",
@@ -49,11 +56,13 @@
         "deniedChannels": [
           "#engineering",
           "#security-incidents"
-        ]
+        ],
+        "deniedItems": []
       }
     },
     "user-security": {
       "slack": {
+        "access": "channel-based",
         "allowedChannels": [
           "#general",
           "#engineering",
@@ -61,11 +70,13 @@
           "#design",
           "#security-incidents"
         ],
-        "deniedChannels": []
+        "deniedChannels": [],
+        "deniedItems": []
       }
     },
     "user-compliance": {
       "slack": {
+        "access": "channel-based",
         "allowedChannels": [
           "#general",
           "#engineering",
@@ -73,7 +84,8 @@
           "#design",
           "#security-incidents"
         ],
-        "deniedChannels": []
+        "deniedChannels": [],
+        "deniedItems": []
       }
     }
   }

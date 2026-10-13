@@ -14,12 +14,17 @@
  *   CONFLUENCE_EMAIL      — the email of your Atlassian account
  *   CONFLUENCE_BASE_URL   — e.g. https://yourcompany.atlassian.net
  *   CONFLUENCE_SPACE_KEY  — (optional) limit to one space, e.g. "ENG"
+ *
+ * Features:
+ *   - Retrieves actual page body text (storage format → plain text)
+ *   - Preserves page IDs, URLs, and modification timestamps
+ *   - Supports pagination (cursor-based via _links.next)
  */
 
 const https = require('https');
 
 function confluenceRequest(baseUrl, email, token, apiPath) {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function (resolve) {
     var urlObj = new URL(baseUrl);
     var auth = Buffer.from(email + ':' + token, 'utf8').toString('base64');
 
@@ -70,6 +75,7 @@ function stripStorageFormat(html) {
 
 /**
  * Fetch real Confluence pages and normalize them to match wiki.json data shape.
+ * Supports pagination via _links.next cursor.
  * @returns {Promise<Array>}
  */
 async function fetchConfluencePages() {
@@ -82,15 +88,43 @@ async function fetchConfluencePages() {
   var apiBase = '/wiki/rest/api';
 
   var cql = spaceKey ? 'type=page AND space=' + spaceKey : 'type=page';
-  var searchPath = apiBase + '/content/search?cql=' + encodeURIComponent(cql) + '&limit=100&expand=space,version,body.storage,history';
+  var allResults = [];
+  var cursor = null;
+  var limit = 25; // Confluence CQL search page size
 
-  var searchResponse = await confluenceRequest(baseUrl, email, token, searchPath);
-  if (!searchResponse || !searchResponse.results) {
-    console.error('[Confluence] No pages returned');
-    return null;
+  // Pagination loop
+  do {
+    var searchPath = apiBase + '/content/search?cql=' + encodeURIComponent(cql) +
+      '&limit=' + limit +
+      '&expand=space,version,body.storage,history' +
+      (cursor ? '&cursor=' + encodeURIComponent(cursor) : '');
+
+    var searchResponse = await confluenceRequest(baseUrl, email, token, searchPath);
+    if (!searchResponse || !searchResponse.results) {
+      console.error('[Confluence] No pages returned');
+      return null;
+    }
+
+    allResults = allResults.concat(searchResponse.results);
+
+    // Confluence pagination: check for _links.next
+    cursor = null;
+    if (searchResponse._links && searchResponse._links.next) {
+      // Extract cursor from the next URL
+      var nextUrl = searchResponse._links.next;
+      var cursorMatch = nextUrl.match(/cursor=([^&]+)/);
+      if (cursorMatch) {
+        cursor = decodeURIComponent(cursorMatch[1]);
+      }
+    }
+  } while (cursor);
+
+  if (allResults.length === 0) {
+    console.log('[Confluence] No pages found');
+    return [];
   }
 
-  var items = searchResponse.results.map(function (page) {
+  var items = allResults.map(function (page) {
     var title = page.title || 'Untitled';
     var body = page.body && page.body.storage ? page.body.storage.value : '';
     var content = stripStorageFormat(body) || title;
@@ -99,6 +133,9 @@ async function fetchConfluencePages() {
     var when = page.version && page.version.when ? page.version.when : null;
     var lastUpdated = when || new Date().toISOString();
     var isSecurity = spaceName.toLowerCase().includes('security') || title.toLowerCase().includes('security') || title.toLowerCase().includes('incident');
+
+    // Build the Confluence page URL
+    var pageUrl = baseUrl + '/wiki' + (page._links && page._links.webui ? page._links.webui : '/pages/' + page.id);
 
     return {
       id: 'wiki-' + page.id,
@@ -110,6 +147,7 @@ async function fetchConfluencePages() {
         ? ['security_team', 'compliance_officer']
         : ['junior_engineer', 'contractor', 'security_team', 'compliance_officer', 'customer_service'],
       lastUpdated: lastUpdated,
+      sourceUrl: pageUrl,
     };
   });
 

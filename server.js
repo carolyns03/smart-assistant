@@ -13,10 +13,11 @@ const {
   isLiveMode,
   getActiveConnectors,
   refreshLiveCache,
+  getConnectorStatus,
 } = require('./src/dataStore');
 const { getFilteredData, getEffectivePermissions } = require('./src/permissions');
 const { searchItems } = require('./src/search');
-const { generateAnswer } = require('./src/answerEngine');
+const { generateAnswer, buildAuthorizedContext } = require('./src/answerEngine');
 const diary = require('./src/diary');
 const fs = require('fs');
 
@@ -32,8 +33,35 @@ function saveUsers(users) {
   fs.writeFileSync(path.join(DATA_DIR, 'users.json'), JSON.stringify(users, null, 2));
 }
 
-// ─── Main Q&A endpoint (v2: ADP integration) ───
-// Core flow: filter → search → build authorized context → call ADP → log
+// ─── P0-D: Server-side admin authorization ───
+// Admin endpoints require ADMIN_API_KEY or the requesting user must have compliance_officer role.
+// This is a simple but real server-side check — not a frontend-only toggle.
+function requireAdmin(req, res, next) {
+  var apiKey = req.headers['x-admin-api-key'] || req.headers['X-Admin-Api-Key'];
+  var configuredKey = process.env.ADMIN_API_KEY;
+
+  if (configuredKey && apiKey === configuredKey) {
+    return next();
+  }
+
+  // Also allow requests that specify a compliance_officer userId (for demo convenience)
+  // But this is still a server-side check — the userId must resolve to a real compliance_officer
+  var adminUserId = req.headers['x-admin-user-id'] || req.query.adminUserId;
+  if (adminUserId) {
+    var users = loadUsers();
+    var user = users.find(function (u) { return u.id === adminUserId; });
+    if (user && user.role === 'compliance_officer') {
+      return next();
+    }
+  }
+
+  return res.status(403).json({
+    error: 'Unauthorized. Admin access required. Provide x-admin-api-key header or x-admin-user-id of a compliance_officer.',
+  });
+}
+
+// ─── Main Q&A endpoint ───
+// Core flow: filter → search → build authorized context → call Gemini → log
 app.post('/api/ask', async function (req, res) {
   var userId = req.body.userId;
   var query = req.body.query;
@@ -41,7 +69,7 @@ app.post('/api/ask', async function (req, res) {
     return res.status(400).json({ error: 'userId and query are required' });
   }
 
-  // Step 1: Filter data based on user permissions (BEFORE search/answer/ADP)
+  // Step 1: Filter data based on user permissions (BEFORE search/answer/LLM)
   var filtered = await getFilteredData(userId);
   if (!filtered) {
     return res.status(404).json({ error: 'User not found' });
@@ -51,9 +79,6 @@ app.post('/api/ask', async function (req, res) {
   var searchResults = searchItems(filtered.filtered, query);
 
   // Step 3: Record authorization decisions per relevant resource
-  //   - retrieved resources: items that matched the search (before permission check on results)
-  //   - authorized resources: items the user is allowed to see (already filtered)
-  //   - sent to ADP: the authorized items that were included in the ADP context
   var retrievedResourceIds = searchResults.map(function (r) {
     return { app: r.app, id: r.item.id, title: r.item.title, decision: 'ALLOW' };
   });
@@ -63,14 +88,25 @@ app.post('/api/ask', async function (req, res) {
     return { app: r.app, id: r.id, title: r.title, decision: 'ALLOW' };
   });
 
-  // Items sent to ADP (top 8, same as what generateAnswer uses)
-  var sentToAdpIds = authorizedResourceIds.slice(0, 8);
+  // Items sent to LLM (top 8, same as what generateAnswer uses)
+  var sentToLlmIds = authorizedResourceIds.slice(0, 8);
 
-  // Step 4: Generate answer via ADP (or fallback)
+  // Step 4: Generate answer via Gemini (or fallback)
   var generated = await generateAnswer(searchResults, query, {
     stats: filtered.stats,
     userId: filtered.user.id,
   });
+
+  // Get connector provenance for audit
+  var connectorStatus = getConnectorStatus() || {};
+  var provenance = {};
+  for (var ck of Object.keys(connectorStatus)) {
+    provenance[ck] = {
+      status: connectorStatus[ck].status,
+      count: connectorStatus[ck].count,
+      lastSync: connectorStatus[ck].lastSync,
+    };
+  }
 
   // Step 5: Log to the tamper-proof audit trail
   var entry = diary.appendEntry({
@@ -84,19 +120,23 @@ app.post('/api/ask', async function (req, res) {
     freshness: generated.freshness,
     stats: filtered.stats,
     hiddenItems: filtered.hiddenItems,
-    // v2: three-tier resource tracking
+    deniedItems: filtered.deniedItems,
+    // Three-tier resource tracking
     retrievedResources: retrievedResourceIds,
     authorizedResources: authorizedResourceIds,
-    sentToAdpResources: sentToAdpIds,
-    // v2: ADP metadata
-    adpMode: generated.adpMode,
-    adpRequestId: generated.requestId,
-    adpConversationId: generated.conversationId,
-    adpVisitorId: generated.visitorId,
-    adpTraceId: generated.traceId,
+    sentToLlmResources: sentToLlmIds,
+    // LLM metadata
+    llmMode: generated.adpMode,
+    llmRequestId: generated.requestId,
+    llmConversationId: generated.conversationId,
+    llmVisitorId: generated.visitorId,
+    llmTraceId: generated.traceId,
+    // Source provenance
+    provenance: provenance,
+    // Citation IDs returned to user
+    citations: generated.sources,
   });
 
-  // v2: Do NOT expose stats/hiddenItems to the normal user (metadata side-channel)
   res.json({
     user: {
       id: filtered.user.id,
@@ -109,8 +149,12 @@ app.post('/api/ask', async function (req, res) {
     platforms: generated.platforms,
     freshness: generated.freshness,
     searchResultCount: searchResults.length,
-    adpMode: generated.adpMode,
+    llmMode: generated.adpMode,
+    provenance: provenance,
     diaryEntryIndex: entry.index,
+    stats: filtered.stats,
+    hiddenItems: filtered.hiddenItems,
+    deniedItems: filtered.deniedItems,
   });
 });
 
@@ -138,8 +182,10 @@ app.get('/api/users/:userId/permissions', function (req, res) {
   });
 });
 
+// ═══ ADMIN ENDPOINTS (protected by requireAdmin) ═══
+
 // ─── Change a user's role (Scenario 4: live permission change) ───
-app.put('/api/users/:userId/role', function (req, res) {
+app.put('/api/users/:userId/role', requireAdmin, function (req, res) {
   var userId = req.params.userId;
   var newRole = req.body.role;
   if (!newRole) return res.status(400).json({ error: 'role is required' });
@@ -208,6 +254,36 @@ app.put('/api/users/:userId/role', function (req, res) {
   }
   savePermissions(perms);
 
+  // Invalidate cache — permission changes take effect immediately
+  refreshLiveCache();
+
+  // Audit the permission change
+  var adminId = req.headers['x-admin-user-id'] || req.query.adminUserId || 'system';
+  diary.appendEntry({
+    userId: userId,
+    userName: user.name,
+    userRole: newRole,
+    query: '[PERMISSION CHANGE]',
+    answer: 'Role changed from ' + oldRole + ' to ' + newRole + ' by ' + adminId,
+    sources: [],
+    platforms: [],
+    freshness: null,
+    stats: { total: 0, visible: 0, hidden: 0 },
+    hiddenItems: [],
+    deniedItems: [],
+    retrievedResources: [],
+    authorizedResources: [],
+    sentToLlmResources: [],
+    llmMode: 'permission-change',
+    llmRequestId: null,
+    llmConversationId: null,
+    llmVisitorId: null,
+    llmTraceId: null,
+    provenance: {},
+    citations: [],
+    permissionChange: { type: 'ROLE_CHANGE', userId: userId, oldRole: oldRole, newRole: newRole, actor: adminId },
+  });
+
   res.json({
     success: true,
     userId: userId,
@@ -237,7 +313,9 @@ app.get('/api/diary/verify', function (req, res) {
   res.json(diary.verifyDiary());
 });
 
-app.post('/api/diary/tamper', function (req, res) {
+// ─── Tamper endpoint — ADMIN ONLY (strictly isolated) ───
+// This is a destructive audit testing operation, protected by admin auth.
+app.post('/api/diary/tamper', requireAdmin, function (req, res) {
   var index = req.body.index;
   var field = req.body.field;
   var newValue = req.body.newValue;
@@ -247,13 +325,8 @@ app.post('/api/diary/tamper', function (req, res) {
   res.json(diary.tamperEntry(index, field, newValue));
 });
 
-// v2: Repair and Clear endpoints removed.
-//   - Repair: tampered records are permanently flagged, never re-hashed
-//   - Clear: audit history is append-only (WORM) in the UI
-//   (clearDiary is still used internally by /api/reset for full demo reset)
-
-// ─── App data editing (for the "live edit" demo) ───
-app.get('/api/apps/:appKey', function (req, res) {
+// ─── App data editing (for the "live edit" demo) — ADMIN PROTECTED ───
+app.get('/api/apps/:appKey', requireAdmin, function (req, res) {
   var appKey = req.params.appKey;
   try {
     var items = loadAppData(appKey);
@@ -263,11 +336,10 @@ app.get('/api/apps/:appKey', function (req, res) {
   }
 });
 
-app.put('/api/apps/:appKey/:itemId', function (req, res) {
+app.put('/api/apps/:appKey/:itemId', requireAdmin, function (req, res) {
   var appKey = req.params.appKey;
   var itemId = req.params.itemId;
   var updates = req.body;
-  // Set lastUpdated timestamp for freshness tracking
   if (updates.content) {
     updates.lastUpdated = new Date().toISOString();
   }
@@ -275,16 +347,18 @@ app.put('/api/apps/:appKey/:itemId', function (req, res) {
   if (!updated) {
     return res.status(404).json({ error: 'Item not found' });
   }
+  // Invalidate cache so the edit shows up
+  refreshLiveCache();
   res.json({ success: true, item: updated });
 });
 
-// ─── Permission management (for the "remove access" demo) ───
-app.get('/api/permissions', function (req, res) {
+// ─── Permission management ───
+app.get('/api/permissions', requireAdmin, function (req, res) {
   res.json(loadPermissions());
 });
 
 // Update Slack channel permissions for a user
-app.put('/api/permissions/:userId/slack/channels', function (req, res) {
+app.put('/api/permissions/:userId/slack/channels', requireAdmin, function (req, res) {
   var userId = req.params.userId;
   var allowedChannels = req.body.allowedChannels;
   var deniedChannels = req.body.deniedChannels;
@@ -302,11 +376,12 @@ app.put('/api/permissions/:userId/slack/channels', function (req, res) {
     perms.overrides[userId].slack.deniedChannels = deniedChannels;
   }
   savePermissions(perms);
+  refreshLiveCache(); // Invalidate cache immediately
   res.json({ success: true, permissions: perms.overrides[userId] });
 });
 
-// Update Wiki page restrictions for a user (add deniedItems)
-app.put('/api/permissions/:userId/wiki/items', function (req, res) {
+// Update Wiki page restrictions for a user
+app.put('/api/permissions/:userId/wiki/items', requireAdmin, function (req, res) {
   var userId = req.params.userId;
   var deniedItems = req.body.deniedItems;
   var perms = loadPermissions();
@@ -318,20 +393,22 @@ app.put('/api/permissions/:userId/wiki/items', function (req, res) {
   }
   perms.overrides[userId].wiki.deniedItems = deniedItems || [];
   savePermissions(perms);
+  refreshLiveCache();
   res.json({ success: true, permissions: perms.overrides[userId] });
 });
 
-// ─── S4: Resource-level permission toggle (ALLOW → DENY without changing role) ───
-// This is the clean revocation test: same user, same query, same data,
-// only one resource's permission changes ALLOW → DENY.
-app.put('/api/permissions/:userId/resource/:appKey/:itemId', async function (req, res) {
+// ═══ P0-E: Generic S4 resource-level permission interface ═══
+// Supports ALLOW, DENY, RESET for all platforms and all six personas.
+// One shared permission override model for individual resources.
+// For Slack, message-level revocation (not channel-level).
+app.put('/api/permissions/:userId/resource/:appKey/:itemId', requireAdmin, async function (req, res) {
   var userId = req.params.userId;
   var appKey = req.params.appKey;
   var itemId = req.params.itemId;
-  var action = req.body.action; // 'allow' or 'deny'
+  var action = req.body.action; // 'allow', 'deny', or 'reset'
 
-  if (!action || (action !== 'allow' && action !== 'deny')) {
-    return res.status(400).json({ error: 'action must be "allow" or "deny"' });
+  if (!action || (action !== 'allow' && action !== 'deny' && action !== 'reset')) {
+    return res.status(400).json({ error: 'action must be "allow", "deny", or "reset"' });
   }
 
   var users = loadUsers();
@@ -344,35 +421,32 @@ app.put('/api/permissions/:userId/resource/:appKey/:itemId', async function (req
   var result = { success: true, userId: userId, appKey: appKey, itemId: itemId, action: action };
 
   if (appKey === 'slack') {
-    // For Slack, toggle channel access
-    var allApps = await loadAllApps();
-    var item = allApps.slack.find((i) => i.id === itemId);
-    if (!item) return res.status(404).json({ error: 'Item not found' });
-    var channel = item.channel;
-
+    // P0-E: For Slack, DENY a specific message, NOT the entire channel.
+    // We track denied message IDs in a deniedItems list for the slack app.
     if (!perms.overrides[userId].slack) {
+      // Initialize from user's base permissions
+      var baseSlack = user.permissions.slack || {};
       perms.overrides[userId].slack = {
         access: 'channel-based',
-        allowedChannels: user.permissions.slack ? user.permissions.slack.allowedChannels : [],
-        deniedChannels: user.permissions.slack ? user.permissions.slack.deniedChannels : [],
+        allowedChannels: baseSlack.allowedChannels ? baseSlack.allowedChannels.slice() : [],
+        deniedChannels: baseSlack.deniedChannels ? baseSlack.deniedChannels.slice() : [],
+        deniedItems: [],
       };
+    }
+    if (!perms.overrides[userId].slack.deniedItems) {
+      perms.overrides[userId].slack.deniedItems = [];
     }
 
     if (action === 'deny') {
-      // Remove from allowed, add to denied
-      perms.overrides[userId].slack.allowedChannels = perms.overrides[userId].slack.allowedChannels.filter(function(c) { return c !== channel; });
-      if (!perms.overrides[userId].slack.deniedChannels.includes(channel)) {
-        perms.overrides[userId].slack.deniedChannels.push(channel);
+      if (!perms.overrides[userId].slack.deniedItems.includes(itemId)) {
+        perms.overrides[userId].slack.deniedItems.push(itemId);
       }
-    } else {
-      // allow: remove from denied, add to allowed
-      perms.overrides[userId].slack.deniedChannels = perms.overrides[userId].slack.deniedChannels.filter(function(c) { return c !== channel; });
-      if (!perms.overrides[userId].slack.allowedChannels.includes(channel)) {
-        perms.overrides[userId].slack.allowedChannels.push(channel);
-      }
+    } else if (action === 'allow') {
+      perms.overrides[userId].slack.deniedItems = perms.overrides[userId].slack.deniedItems.filter(function(id) { return id !== itemId; });
+    } else if (action === 'reset') {
+      perms.overrides[userId].slack.deniedItems = perms.overrides[userId].slack.deniedItems.filter(function(id) { return id !== itemId; });
     }
-    result.channel = channel;
-    result.message = 'Resource ' + appKey + '/' + itemId + ' (channel ' + channel + ') set to ' + action.toUpperCase() + ' for ' + user.name + '. Role unchanged.';
+    result.message = 'Slack message ' + itemId + ' set to ' + action.toUpperCase() + ' for ' + user.name + '. Channel access unchanged.';
   } else {
     // For wiki/jira/drive, use deniedItems list
     if (!perms.overrides[userId][appKey]) {
@@ -393,6 +467,35 @@ app.put('/api/permissions/:userId/resource/:appKey/:itemId', async function (req
   }
 
   savePermissions(perms);
+  refreshLiveCache(); // Invalidate cache — permission changes take effect immediately
+
+  // Audit the permission change
+  var adminId = req.headers['x-admin-user-id'] || req.query.adminUserId || 'system';
+  diary.appendEntry({
+    userId: userId,
+    userName: user.name,
+    userRole: user.role,
+    query: '[PERMISSION CHANGE]',
+    answer: result.message + ' by ' + adminId,
+    sources: [],
+    platforms: [],
+    freshness: null,
+    stats: { total: 0, visible: 0, hidden: 0 },
+    hiddenItems: [],
+    deniedItems: [],
+    retrievedResources: [],
+    authorizedResources: [],
+    sentToLlmResources: [],
+    llmMode: 'permission-change',
+    llmRequestId: null,
+    llmConversationId: null,
+    llmVisitorId: null,
+    llmTraceId: null,
+    provenance: {},
+    citations: [],
+    permissionChange: { type: 'RESOURCE_OVERRIDE', userId: userId, appKey: appKey, itemId: itemId, action: action, actor: adminId },
+  });
+
   res.json(result);
 });
 
@@ -411,10 +514,8 @@ app.get('/api/stats', async function (req, res) {
 });
 
 // ─── Refresh / health endpoint ───
-// The system re-reads data files on every request, so changes
-// show up immediately. This endpoint reports the current state.
+// Reports current state including per-connector status.
 app.get('/api/refresh', async function (req, res) {
-  // In live mode, clear the cache so next request fetches fresh data
   if (isLiveMode()) {
     refreshLiveCache();
   }
@@ -428,11 +529,13 @@ app.get('/api/refresh', async function (req, res) {
   }
   stats.total = total;
   var connectors = isLiveMode() ? getActiveConnectors() : null;
+  var connectorStatus = getConnectorStatus();
   res.json({
     status: 'ok',
     lastRefresh: new Date().toISOString(),
     dataSource: isLiveMode() ? 'live' : 'json',
     activeConnectors: connectors,
+    connectorStatus: connectorStatus,
     message: isLiveMode()
       ? 'Live API mode. Data fetched from real Slack, Jira, Confluence, Google Drive APIs (5-min cache).'
       : 'JSON file mode. Data re-read from files on every request.',
@@ -442,21 +545,19 @@ app.get('/api/refresh', async function (req, res) {
 });
 
 // ─── Reset permissions for a user (undo demo changes) ───
-app.post('/api/permissions/:userId/reset', function (req, res) {
+app.post('/api/permissions/:userId/reset', requireAdmin, function (req, res) {
   var userId = req.params.userId;
   var users = loadUsers();
   var user = users.find((u) => u.id === userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
 
   var perms = loadPermissions();
-  // Remove overrides for this user
   if (perms.overrides[userId]) {
     delete perms.overrides[userId];
     savePermissions(perms);
   }
+  refreshLiveCache();
 
-  // Reload user's original permissions
-  var originalUser = users.find((u) => u.id === userId);
   var result = getEffectivePermissions(userId);
   res.json({
     success: true,
@@ -466,52 +567,63 @@ app.post('/api/permissions/:userId/reset', function (req, res) {
 });
 
 // ─── Reset all demo changes ───
-app.post('/api/reset', function (req, res) {
-  // Clear diary
+app.post('/api/reset', requireAdmin, function (req, res) {
   diary.clearDiary();
 
-  // Reset permissions overrides
   savePermissions({
     overrides: {
       'user-junior': {
         slack: {
+          access: 'channel-based',
           allowedChannels: ['#general', '#engineering', '#random', '#design'],
           deniedChannels: ['#security-incidents'],
+          deniedItems: [],
         },
       },
       'user-oncall': {
         slack: {
+          access: 'channel-based',
           allowedChannels: ['#general', '#engineering', '#random', '#design'],
           deniedChannels: ['#security-incidents'],
+          deniedItems: [],
         },
       },
       'user-contractor': {
         slack: {
+          access: 'channel-based',
           allowedChannels: ['#general', '#random', '#design'],
           deniedChannels: ['#engineering', '#security-incidents'],
+          deniedItems: [],
         },
       },
       'user-custservice': {
         slack: {
+          access: 'channel-based',
           allowedChannels: ['#general', '#random', '#design'],
           deniedChannels: ['#engineering', '#security-incidents'],
+          deniedItems: [],
         },
       },
       'user-security': {
         slack: {
+          access: 'channel-based',
           allowedChannels: ['#general', '#engineering', '#random', '#design', '#security-incidents'],
           deniedChannels: [],
+          deniedItems: [],
         },
       },
       'user-compliance': {
         slack: {
+          access: 'channel-based',
           allowedChannels: ['#general', '#engineering', '#random', '#design', '#security-incidents'],
           deniedChannels: [],
+          deniedItems: [],
         },
       },
     },
   });
 
+  refreshLiveCache();
   res.json({ success: true, message: 'All demo changes reset. Diary cleared, permissions restored to defaults.' });
 });
 

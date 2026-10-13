@@ -10,11 +10,11 @@ const { fetchConfluencePages } = require('./connectors/confluenceConnector');
 const { fetchDriveFiles } = require('./connectors/driveConnector');
 
 // ─── Cache for live API data (TTL: 5 minutes) ───
-// This prevents hitting the APIs on every single request.
 var liveCache = {
   data: null,       // { wiki, jira, slack, drive }
   timestamp: null,  // Date.now() when cache was populated
   pending: null,    // Promise (if a fetch is in progress)
+  connectorStatus: null, // Per-connector status tracking
 };
 
 var CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -46,21 +46,61 @@ function loadJson(filename) {
 }
 
 /**
- * Fetch all app data. In live mode, tries to fetch from real APIs first,
- * falling back to JSON files for any connector that has no credentials
- * or whose API call fails.
+ * Fetch from a single connector with full error handling.
+ * Returns { status, data, error } where:
+ *   status = 'LIVE' | 'EMPTY' | 'ERROR' | 'MOCK'
+ *
+ * Never silently falls back to JSON. The caller decides what to do with failures.
+ */
+async function fetchConnector(name, fetchFn, jsonFile) {
+  try {
+    var result = await fetchFn();
+    if (result === null) {
+      // Connector returned null — either no credentials or API error
+      return { status: 'ERROR', data: null, error: 'Connector returned null (check credentials or API errors)', source: 'api' };
+    }
+    if (Array.isArray(result) && result.length === 0) {
+      // API succeeded but returned no data — EMPTY, not ERROR
+      return { status: 'EMPTY', data: [], error: null, source: 'api' };
+    }
+    if (Array.isArray(result) && result.length > 0) {
+      return { status: 'LIVE', data: result, error: null, source: 'api' };
+    }
+    // Unexpected response shape
+    return { status: 'ERROR', data: null, error: 'Unexpected response shape from connector', source: 'api' };
+  } catch (e) {
+    return { status: 'ERROR', data: null, error: e.message || 'Unknown connector error', source: 'api' };
+  }
+}
+
+/**
+ * Fetch all app data. In live mode, tries to fetch from real APIs first.
+ * For any connector that fails, falls back to JSON but marks it as MOCK.
+ *
+ * The connectorStatus object tracks per-connector:
+ *   status: LIVE | MOCK | EMPTY | ERROR
+ *   count: number of items
+ *   lastSync: ISO timestamp of last successful sync
+ *   lastError: error message or null
  *
  * @returns {Promise<Object>} { wiki, jira, slack, drive }
  */
 async function loadAllApps() {
   // If not in live mode, use JSON files (original behavior)
   if (!isLiveMode()) {
-    return {
+    var jsonData = {
       wiki: loadJson('wiki.json'),
       jira: loadJson('jira.json'),
       slack: loadJson('slack.json'),
       drive: loadJson('drive.json'),
     };
+    liveCache.connectorStatus = {
+      wiki: { status: 'MOCK', count: jsonData.wiki.length, lastSync: null, lastError: null },
+      jira: { status: 'MOCK', count: jsonData.jira.length, lastSync: null, lastError: null },
+      slack: { status: 'MOCK', count: jsonData.slack.length, lastSync: null, lastError: null },
+      drive: { status: 'MOCK', count: jsonData.drive.length, lastSync: null, lastError: null },
+    };
+    return jsonData;
   }
 
   // Live mode — check cache first
@@ -80,35 +120,105 @@ async function loadAllApps() {
     console.log('[DataStore] Live mode active. Connectors:', JSON.stringify(active));
 
     // Fetch from each connector in parallel
-    // If a connector has no credentials or fails, fall back to JSON
-    var results = await Promise.all([
-      active.wiki ? fetchConfluencePages() : null,
-      active.jira ? fetchJiraIssues() : null,
-      active.slack ? fetchSlackMessages() : null,
-      active.drive ? fetchDriveFiles() : null,
-    ]);
+    // If a connector has no credentials, it returns null immediately
+    var fetchTasks = [
+      active.wiki ? fetchConnector('confluence', fetchConfluencePages, 'wiki.json') : null,
+      active.jira ? fetchConnector('jira', fetchJiraIssues, 'jira.json') : null,
+      active.slack ? fetchConnector('slack', fetchSlackMessages, 'slack.json') : null,
+      active.drive ? fetchConnector('drive', fetchDriveFiles, 'drive.json') : null,
+    ];
 
-    var confluencePages = results[0];
-    var jiraIssues = results[1];
-    var slackMessages = results[2];
-    var driveFiles = results[3];
+    var results = await Promise.all(fetchTasks);
 
-    var data = {
-      wiki: confluencePages && confluencePages.length > 0 ? confluencePages : loadJson('wiki.json'),
-      jira: jiraIssues && jiraIssues.length > 0 ? jiraIssues : loadJson('jira.json'),
-      slack: slackMessages && slackMessages.length > 0 ? slackMessages : loadJson('slack.json'),
-      drive: driveFiles && driveFiles.length > 0 ? driveFiles : loadJson('drive.json'),
-    };
+    var confluenceResult = results[0];
+    var jiraResult = results[1];
+    var slackResult = results[2];
+    var driveResult = results[3];
+
+    var data = {};
+    var status = {};
+    var syncTime = new Date().toISOString();
+
+    // For each connector: use LIVE data if available, fall back to JSON (marked as MOCK)
+    // Confluence
+    if (confluenceResult) {
+      if (confluenceResult.status === 'LIVE') {
+        data.wiki = confluenceResult.data;
+        status.wiki = { status: 'LIVE', count: confluenceResult.data.length, lastSync: syncTime, lastError: null };
+      } else if (confluenceResult.status === 'EMPTY') {
+        data.wiki = [];
+        status.wiki = { status: 'EMPTY', count: 0, lastSync: syncTime, lastError: null };
+      } else {
+        // ERROR — fall back to JSON but report ERROR, not LIVE
+        data.wiki = loadJson('wiki.json');
+        status.wiki = { status: 'ERROR', count: data.wiki.length, lastSync: null, lastError: confluenceResult.error };
+      }
+    } else {
+      data.wiki = loadJson('wiki.json');
+      status.wiki = { status: 'MOCK', count: data.wiki.length, lastSync: null, lastError: 'No credentials configured' };
+    }
+
+    // Jira
+    if (jiraResult) {
+      if (jiraResult.status === 'LIVE') {
+        data.jira = jiraResult.data;
+        status.jira = { status: 'LIVE', count: jiraResult.data.length, lastSync: syncTime, lastError: null };
+      } else if (jiraResult.status === 'EMPTY') {
+        data.jira = [];
+        status.jira = { status: 'EMPTY', count: 0, lastSync: syncTime, lastError: null };
+      } else {
+        data.jira = loadJson('jira.json');
+        status.jira = { status: 'ERROR', count: data.jira.length, lastSync: null, lastError: jiraResult.error };
+      }
+    } else {
+      data.jira = loadJson('jira.json');
+      status.jira = { status: 'MOCK', count: data.jira.length, lastSync: null, lastError: 'No credentials configured' };
+    }
+
+    // Slack
+    if (slackResult) {
+      if (slackResult.status === 'LIVE') {
+        data.slack = slackResult.data;
+        status.slack = { status: 'LIVE', count: slackResult.data.length, lastSync: syncTime, lastError: null };
+      } else if (slackResult.status === 'EMPTY') {
+        data.slack = [];
+        status.slack = { status: 'EMPTY', count: 0, lastSync: syncTime, lastError: null };
+      } else {
+        data.slack = loadJson('slack.json');
+        status.slack = { status: 'ERROR', count: data.slack.length, lastSync: null, lastError: slackResult.error };
+      }
+    } else {
+      data.slack = loadJson('slack.json');
+      status.slack = { status: 'MOCK', count: data.slack.length, lastSync: null, lastError: 'No credentials configured' };
+    }
+
+    // Drive
+    if (driveResult) {
+      if (driveResult.status === 'LIVE') {
+        data.drive = driveResult.data;
+        status.drive = { status: 'LIVE', count: driveResult.data.length, lastSync: syncTime, lastError: null };
+      } else if (driveResult.status === 'EMPTY') {
+        data.drive = [];
+        status.drive = { status: 'EMPTY', count: 0, lastSync: syncTime, lastError: null };
+      } else {
+        data.drive = loadJson('drive.json');
+        status.drive = { status: 'ERROR', count: data.drive.length, lastSync: null, lastError: driveResult.error };
+      }
+    } else {
+      data.drive = loadJson('drive.json');
+      status.drive = { status: 'MOCK', count: data.drive.length, lastSync: null, lastError: 'No credentials configured' };
+    }
 
     // Log which sources are live vs fallback
     console.log('[DataStore] Sources:',
-      'wiki=' + (confluencePages && confluencePages.length > 0 ? 'LIVE(' + confluencePages.length + ')' : 'JSON'),
-      'jira=' + (jiraIssues && jiraIssues.length > 0 ? 'LIVE(' + jiraIssues.length + ')' : 'JSON'),
-      'slack=' + (slackMessages && slackMessages.length > 0 ? 'LIVE(' + slackMessages.length + ')' : 'JSON'),
-      'drive=' + (driveFiles && driveFiles.length > 0 ? 'LIVE(' + driveFiles.length + ')' : 'JSON')
+      'wiki=' + status.wiki.status + '(' + status.wiki.count + ')',
+      'jira=' + status.jira.status + '(' + status.jira.count + ')',
+      'slack=' + status.slack.status + '(' + status.slack.count + ')',
+      'drive=' + status.drive.status + '(' + status.drive.count + ')'
     );
 
     liveCache.data = data;
+    liveCache.connectorStatus = status;
     liveCache.timestamp = Date.now();
     liveCache.pending = null;
 
@@ -119,10 +229,7 @@ async function loadAllApps() {
 }
 
 /**
- * Synchronous version for endpoints that don't need live data
- * (e.g., /api/stats, /api/apps/:appKey).
- * Returns JSON file data immediately.
- * In live mode, the async loadAllApps() above is used for the main Q&A flow.
+ * Synchronous version for endpoints that don't need live data.
  */
 function loadAllAppsSync() {
   return {
@@ -180,10 +287,19 @@ function updateAppItem(appKey, itemId, updates) {
 
 /**
  * Force-refresh the live cache (called by /api/refresh endpoint in live mode).
+ * Also invalidates the permission cache.
  */
 function refreshLiveCache() {
   liveCache.data = null;
   liveCache.timestamp = null;
+  liveCache.connectorStatus = null;
+}
+
+/**
+ * Get the current connector status (LIVE/MOCK/EMPTY/ERROR per connector).
+ */
+function getConnectorStatus() {
+  return liveCache.connectorStatus || null;
 }
 
 module.exports = {
@@ -199,4 +315,5 @@ module.exports = {
   isLiveMode,
   getActiveConnectors,
   refreshLiveCache,
+  getConnectorStatus,
 };

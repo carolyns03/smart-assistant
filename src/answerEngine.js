@@ -192,7 +192,7 @@ function callGemini(query, authorizedContext, userId) {
  */
 function fallbackAnswer(searchResults, query) {
   var sources = searchResults.map(function (r) {
-    return { app: r.app, id: r.item.id, title: r.item.title };
+    return { app: r.app, id: r.item.id, title: r.item.title, sourceUrl: r.item.sourceUrl || null };
   });
 
   var topResults = searchResults.slice(0, 8);
@@ -280,7 +280,7 @@ async function generateAnswer(searchResults, query, options) {
   }
 
   var sources = searchResults.map(function (r) {
-    return { app: r.app, id: r.item.id, title: r.item.title };
+    return { app: r.app, id: r.item.id, title: r.item.title, sourceUrl: r.item.sourceUrl || null };
   });
 
   var topResults = searchResults.slice(0, 8);
