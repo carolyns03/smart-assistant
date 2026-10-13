@@ -326,12 +326,6 @@
         if (data.llmMode) {
           html += '<div class="llm-mode-bar">LLM: ' + escapeHtml(data.llmMode) + '</div>';
         }
-        if (data.deniedItems && data.deniedItems.length > 0) {
-          html += '<div class="sources" style="color:#dc3545;">Denied: ' + data.deniedItems.length + ' resource(s) filtered before LLM</div>';
-        }
-        if (data.stats) {
-          html += '<div class="stats-bar">' + data.stats.visible + '/' + data.stats.total + ' resources authorized (' + data.stats.hidden + ' denied)</div>';
-        }
         if (data.diaryEntryIndex !== undefined && data.diaryEntryIndex !== null) {
           html += '<div class="stats-bar">Audit entry #' + data.diaryEntryIndex + '</div>';
         }

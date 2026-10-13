@@ -1,12 +1,10 @@
 /**
- * Jira Connector — fetches real issues from the Jira REST API (Cloud)
+ * Jira Connector — fetches real issues from the Jira REST API (Cloud v3)
  *
  * Setup:
- *   1. Go to https://developer.atlassian.com/console/ → Create app
- *   2. Add API: Jira Platform REST API → Configure scopes:
- *      - read:jira-work
- *   3. Authorization → Generate token → copy the token
- *   4. Your base URL is your Jira Cloud URL, e.g. https://yourcompany.atlassian.net
+ *   1. Go to https://id.atlassian.com/manage-profile/security/api-tokens
+ *   2. Create an API token and copy it
+ *   3. Your base URL is your Jira Cloud URL, e.g. https://yourcompany.atlassian.net
  *
  * Env vars:
  *   JIRA_API_TOKEN    — the API token from Atlassian
@@ -17,10 +15,33 @@
  * Features:
  *   - Preserves issue keys, descriptions, status, URLs, and timestamps
  *   - Handles empty projects separately from API failures
- *   - Supports pagination
+ *   - Supports pagination via nextPageToken
+ *   - Extracts plain text from Atlassian Document Format (ADF) descriptions
+ *   - Bounded JQL query (updated >= -365d) per v3 API requirement
  */
 
 const https = require('https');
+
+/**
+ * Extract plain text from an Atlassian Document Format (ADF) object.
+ * ADF structure: { type: 'doc', content: [ { type: 'paragraph', content: [ { type: 'text', text: '...' } ] } ] }
+ * Also handles null, undefined, or plain string values.
+ */
+function extractTextFromADF(node) {
+  if (!node) return '';
+  if (typeof node === 'string') return node;
+  if (typeof node !== 'object') return '';
+
+  var text = '';
+  if (node.text) return node.text;
+
+  if (node.content && Array.isArray(node.content)) {
+    for (var i = 0; i < node.content.length; i++) {
+      text += extractTextFromADF(node.content[i]);
+    }
+  }
+  return text;
+}
 
 function jiraRequest(baseUrl, email, token, apiPath) {
   return new Promise(function (resolve) {
@@ -49,6 +70,10 @@ function jiraRequest(baseUrl, email, token, apiPath) {
         }
         if (res.statusCode === 404) {
           console.error('[Jira] Not found: HTTP 404 — check JIRA_BASE_URL');
+          return resolve(null);
+        }
+        if (res.statusCode === 410) {
+          console.error('[Jira] API endpoint deprecated (HTTP 410) — must use /rest/api/3/search/jql');
           return resolve(null);
         }
         try {
@@ -90,21 +115,26 @@ async function fetchJiraIssues() {
 
   var projectKey = process.env.JIRA_PROJECT_KEY || '';
 
-  // Build JQL query
-  var jql = projectKey ? 'project = ' + projectKey + ' ORDER BY updated DESC' : 'ORDER BY updated DESC';
+  // Build JQL query — v3 API requires a bounded query (no unbounded "ORDER BY" alone)
+  var jqlBase = projectKey ? 'project = ' + projectKey : 'updated >= -365d';
+  var jql = projectKey
+    ? jqlBase + ' AND updated >= -365d ORDER BY updated DESC'
+    : jqlBase + ' ORDER BY updated DESC';
 
   var allIssues = [];
-  var startAt = 0;
   var maxResults = 50;
-  var total = null;
+  var nextPageToken = null;
+  var isLast = false;
 
-  // Pagination loop
+  // Pagination loop — v3 uses nextPageToken instead of startAt/total
   do {
-    // Jira Cloud REST API v2 — use search endpoint with pagination
-    var apiPath = '/rest/api/2/search?jql=' + encodeURIComponent(jql) +
-      '&startAt=' + startAt +
+    var apiPath = '/rest/api/3/search/jql?jql=' + encodeURIComponent(jql) +
       '&maxResults=' + maxResults +
       '&fields=summary,description,status,assignee,priority,labels,issuetype,updated,created';
+
+    if (nextPageToken) {
+      apiPath += '&nextPageToken=' + encodeURIComponent(nextPageToken);
+    }
 
     var response = await jiraRequest(baseUrl, email, token, apiPath);
     if (!response || !response.issues) {
@@ -114,14 +144,14 @@ async function fetchJiraIssues() {
     }
 
     allIssues = allIssues.concat(response.issues);
-    total = response.total || 0;
-    startAt += response.issues.length;
+    isLast = response.isLast === true || !response.nextPageToken;
+    nextPageToken = response.nextPageToken || null;
 
     // If we've fetched all issues, stop
-    if (response.issues.length === 0 || startAt >= total) {
+    if (response.issues.length === 0 || isLast) {
       break;
     }
-  } while (startAt < total);
+  } while (nextPageToken);
 
   // Empty project: API succeeded but returned 0 issues
   if (allIssues.length === 0) {
@@ -138,7 +168,8 @@ async function fetchJiraIssues() {
     var labels = fields.labels || [];
     var issueType = fields.issuetype ? (fields.issuetype.name || '') : '';
 
-    var description = fields.description || '';
+    // Extract plain text from ADF description (v3) or use string directly (v2 fallback)
+    var description = extractTextFromADF(fields.description) || '';
     var title = fields.summary || issue.key;
 
     if (issueType) labels.push(issueType.toLowerCase());

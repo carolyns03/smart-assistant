@@ -3,7 +3,7 @@
     "id": "user-junior",
     "name": "Alex Kim",
     "title": "Backend Engineer",
-    "role": "junior_engineer",
+    "role": "contractor",
     "description": "A backend engineer who sees normal engineering and general content. Has access to most non-secret items but cannot view security incident channels or business/financial reports.",
     "permissions": {
       "wiki": {
@@ -18,11 +18,11 @@
         "access": "channel-based",
         "allowedChannels": [
           "#general",
-          "#engineering",
           "#random",
           "#design"
         ],
         "deniedChannels": [
+          "#engineering",
           "#security-incidents"
         ]
       },
@@ -102,7 +102,7 @@
     "id": "user-custservice",
     "name": "Taylor Wu",
     "title": "Customer Service",
-    "role": "contractor",
+    "role": "customer_service",
     "description": "A customer service representative who handles customer inquiries. Has access to general content and customer-facing docs but should NOT see sensitive PII like bank account details.",
     "permissions": {
       "wiki": {
