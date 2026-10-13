@@ -5,8 +5,8 @@
 ```mermaid
 graph TB
     subgraph "Frontend (Browser)"
-        UI[Chat UI<br/>Persona Select + S1-S5 Nav]
-        AUDIT[Audit Trail Page<br/>Hash-Chain Viewer]
+        UI[Chat UI<br/>Persona Select + S1-S5 Nav<br/>No connector status shown]
+        AUDIT[Audit Trail Page<br/>Hash-Chain Viewer<br/>No provenance/freshness shown]
     end
 
     subgraph "Server (Express)"
@@ -22,7 +22,7 @@ graph TB
     end
 
     subgraph "Data Layer"
-        DS[dataStore.js<br/>5-min Cache<br/>Live/Mock Switch]
+        DS[dataStore.js<br/>5-min Cache<br/>Live/Mock Switch<br/>loadAppDataLive for S4]
         CONN[Connectors]
     end
 
@@ -107,8 +107,8 @@ sequenceDiagram
     D->>D: SHA-256 fingerprint chain
     D-->>S: entry index
     
-    S-->>U: {answer, sources, provenance, auditEntryIndex}
-    Note over S,U: Denied items count NOT shown to user (only in audit trail)
+    S-->>U: {answer, sources, auditEntryIndex}
+    Note over S,U: Denied items count, provenance, freshness,<br/>and connector status NOT shown to user<br/>(only in server-side audit log)
 ```
 
 ## S4 Permission Change Flow (Mermaid)
@@ -152,4 +152,28 @@ graph LR
     
     F -->|Gemini response| J[Answer + Citations]
     J -.->|logged| K[Audit: citations]
+```
+
+## S4 Resource Dropdown Data Flow (Mermaid)
+
+```mermaid
+sequenceDiagram
+    participant U as Admin (S4 Panel)
+    participant S as Server
+    participant DS as DataStore
+    participant C as Connectors (Live APIs)
+
+    U->>S: GET /api/apps/:app (x-admin-user-id: user-compliance)
+    S->>S: requireAdmin (compliance_officer check)
+    S->>DS: loadAppDataLive(appKey)
+    DS->>DS: isLiveMode? → loadAllApps()
+    DS->>C: Fetch from live API (if cache expired)
+    C-->>DS: Live data (Slack/Jira/Confluence/Drive)
+    DS-->>S: Full unfiltered resource list
+    S-->>U: JSON array of all resources
+
+    Note over U: User selects a resource to DENY
+    U->>S: PUT /api/permissions/:userId/resource/:app/:id
+    S->>S: Update overrides + invalidate cache
+    S-->>U: Success
 ```

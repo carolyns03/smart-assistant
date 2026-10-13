@@ -1,5 +1,20 @@
 {
   "overrides": {
+    "user-junior": {
+      "slack": {
+        "access": "channel-based",
+        "allowedChannels": [
+          "#general",
+          "#engineering",
+          "#random",
+          "#design"
+        ],
+        "deniedChannels": [
+          "#security-incidents"
+        ],
+        "deniedItems": []
+      }
+    },
     "user-oncall": {
       "slack": {
         "access": "channel-based",
@@ -71,6 +86,12 @@
         ],
         "deniedChannels": [],
         "deniedItems": []
+      },
+      "wiki": {
+        "access": "role-based",
+        "deniedItems": [
+          "wiki-65960"
+        ]
       }
     }
   }

@@ -158,13 +158,13 @@
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'x-admin-user-id': 'user-compliance' },
             body: JSON.stringify({
-              content: 'Payment-service incident response runbook. Step 1: Check Stripe dashboard for error rate. Step 2: Verify webhook endpoint is reachable. Step 3: If payment gateway is down, enable circuit breaker and queue payments. Step 4: NEW FAILVER STEP - Failover to backup payment gateway at pg-failover.company.internal if primary is down for more than 5 minutes. Step 5: Post incident status in #engineering. Step 6: Create P0 ticket in Jira. This runbook was updated at 1:00 PM today with the new failover step.',
+              content: 'Payment-service incident response runbook. Step 1: Check Stripe dashboard for error rate. Step 2: Verify webhook endpoint is reachable. Step 3: If payment gateway is down, enable circuit breaker and queue payments. Step 4: NEW FAILVER STEP - Failover to backup payment gateway at pg-failover.company.internal if primary is down for more than 5 minutes. Step 5: Post incident status in #engineering. Step 6: Create P0 ticket in Jira. This runbook includes a newly added failover step.',
               lastUpdated: new Date().toISOString(),
             }),
           }).then(function() {
             selectUser('user-oncall');
             document.getElementById('queryInput').value = scenarios[2].query;
-            addSystemMessage('Scenario 2 loaded: Runbook updated at 1:00 PM with NEW failover step. On-call engineer asks for it. Click "Ask" to verify the answer includes the latest update (not stale).');
+            addSystemMessage('Scenario 2 loaded: Runbook was recently updated with a NEW failover step. On-call engineer asks for it. Click "Ask" to verify the answer includes the latest update (not stale).');
           });
         }
       },
@@ -218,17 +218,9 @@
         var dataMode = data.dataSource === 'live' ? 'LIVE API mode' : 'JSON (mock) mode';
         document.getElementById('dataModeText').textContent = dataMode + ' — ' + data.message;
 
-        var statusHtml = '';
-        var cs = data.connectorStatus;
-        if (cs) {
-          var appNames = { wiki: 'Confluence', jira: 'Jira', slack: 'Slack', drive: 'Drive' };
-          for (var key of Object.keys(cs)) {
-            var s = cs[key].status;
-            var cls = s === 'LIVE' ? 'live' : (s === 'MOCK' ? 'mock' : (s === 'ERROR' ? 'error' : 'empty'));
-            statusHtml += '<span class="connector-badge ' + cls + '">' + appNames[key] + ': ' + s + ' (' + cs[key].count + ')</span>';
-          }
-        }
-        document.getElementById('connectorStatus').innerHTML = statusHtml;
+        // Per-connector status badges (Confluence: LIVE, Jira: LIVE, etc.) are hidden
+        // — the data mode text above already communicates the data source to the user.
+        document.getElementById('connectorStatus').innerHTML = '';
       });
     }
 
@@ -294,22 +286,9 @@
         if (data.platforms && data.platforms.length > 0) {
           html += '<div class="platforms-bar">Platforms consulted: ' + data.platforms.join(', ') + '</div>';
         }
-        // Provenance (LIVE/MOCK labels)
-        if (data.provenance) {
-          var appNames = { wiki: 'Confluence', jira: 'Jira', slack: 'Slack', drive: 'Drive' };
-          var provParts = [];
-          for (var key of Object.keys(data.provenance)) {
-            var p = data.provenance[key];
-            var pcls = p.status === 'LIVE' ? 'provenance-live' : (p.status === 'MOCK' ? 'provenance-mock' : (p.status === 'ERROR' ? 'provenance-error' : 'provenance-empty'));
-            provParts.push('<span class="' + pcls + '">' + (appNames[key] || key) + ': ' + p.status + '</span>');
-          }
-          if (provParts.length > 0) {
-            html += '<div class="provenance-bar">Data source: ' + provParts.join(' | ') + '</div>';
-          }
-        }
-        if (data.freshness) {
-          html += '<div class="freshness-bar">Latest data updated: ' + new Date(data.freshness).toLocaleString() + '</div>';
-        }
+        // Per-connector LIVE/MOCK status and freshness timestamp are hidden
+        // from the chat UI — they reveal information about the backend data
+        // sources that end users should not see.
         if (data.sources && data.sources.length > 0) {
           html += '<div class="sources"><strong>Sources:</strong> ';
           data.sources.forEach(function(s) {
@@ -399,7 +378,11 @@
     }
 
     function loadResourcesForDropdown() {
-      var adminHeader = selectedUser ? { 'x-admin-user-id': selectedUser } : {};
+      // The admin endpoint requires compliance_officer role (or ADMIN_API_KEY).
+      // Use the compliance officer's ID so the dropdown shows the FULL unfiltered list —
+      // otherwise the user would only see resources they already have access to, which
+      // makes the DENY action meaningless.
+      var adminHeader = { 'x-admin-user-id': 'user-compliance' };
       var appNames = { wiki: 'Confluence', jira: 'Jira', slack: 'Slack', drive: 'Drive' };
       var promises = Object.keys(appNames).map(function(appKey) {
         return fetch('/api/apps/' + appKey, { headers: adminHeader })
@@ -421,11 +404,15 @@
         var sel = document.getElementById('resourceSelect');
         if (sel) {
           sel.innerHTML = '';
-          allResources.forEach(function(r) {
-            sel.innerHTML += '<option value="' + r.app + '/' + r.id + '">' + r.appLabel + ': ' + escapeHtml(r.title) + ' (' + r.id + ')</option>';
-          });
           if (allResources.length === 0) {
-            sel.innerHTML = '<option value="">No resources available</option>';
+            var msg = 'No resources available — backend API unreachable';
+            sel.innerHTML = '<option value="" disabled>' + msg + '</option>';
+            sel.disabled = true;
+          } else {
+            sel.disabled = false;
+            allResources.forEach(function(r) {
+              sel.innerHTML += '<option value="' + r.app + '/' + r.id + '">' + r.appLabel + ': ' + escapeHtml(r.title) + ' (' + r.id + ')</option>';
+            });
           }
         }
       });

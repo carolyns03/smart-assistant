@@ -155,11 +155,9 @@
           sourcesHtml += '</div>';
         }
 
-        var freshnessHtml = '';
-        if (e.freshness) {
-          freshnessHtml = '<div class="entry-platforms" style="color:#28a745;">Latest data: ' + new Date(e.freshness).toLocaleString() + '</div>';
-        }
-
+        // "Latest data" freshness timestamp is hidden from the audit trail UI
+        // — the per-entry timestamp on the right already provides a precise time
+        // for compliance review.
         var authHtml = '';
         if (e.authorization) {
           authHtml = '<div class="entry-auth">Authorization: <span class="auth-decision auth-allowed">' + e.authorization.decision +
@@ -193,20 +191,10 @@
             e.deniedItems.map(function(d) { return escapeHtml(d.app + '/' + d.id + ' (' + d.reason + ')'); }).join(', ') + '</div>';
         }
 
-        // v3: Provenance (LIVE/MOCK per connector)
-        var provenanceHtml = '';
-        if (e.provenance) {
-          var appNames = { wiki: 'Confluence', jira: 'Jira', slack: 'Slack', drive: 'Drive' };
-          var provParts = [];
-          for (var key of Object.keys(e.provenance)) {
-            var p = e.provenance[key];
-            var pcolor = p.status === 'LIVE' ? '#28a745' : (p.status === 'MOCK' ? '#ffc107' : '#dc3545');
-            provParts.push('<span style="color:' + pcolor + ';">' + (appNames[key] || key) + ': ' + p.status + '</span>');
-          }
-          if (provParts.length > 0) {
-            provenanceHtml = '<div class="entry-sources" style="color:#888;">Provenance: ' + provParts.join(' | ') + '</div>';
-          }
-        }
+        // Per-connector provenance (LIVE/MOCK per connector) is hidden from the
+        // audit trail UI — the per-platform "Platforms consulted" line already
+        // records which sources were used, and the connector status reflects
+        // infrastructure rather than user activity.
 
         // v3: LLM metadata (renamed from ADP)
         var llmHtml = '';
@@ -250,12 +238,10 @@
           '<div class="entry-query"><strong>Q:</strong> ' + escapeHtml(e.query) + '</div>' +
           '<div class="entry-answer"><strong>A:</strong> ' + escapeHtml(answerPreview) + '</div>' +
           platformsHtml +
-          freshnessHtml +
           sourcesHtml +
           authHtml +
           deniedHtml +
           resourceHtml +
-          provenanceHtml +
           llmHtml +
           '<div class="entry-fingerprint">fingerprint: ' + (e.fingerprint || '').substring(0, 32) + '...</div>' +
           '<div class="entry-fingerprint">prev: ' + (e.previousFingerprint ? (e.previousFingerprint.substring(0, 32) + '...') : 'null (genesis)') + '</div>';

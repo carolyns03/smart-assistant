@@ -269,6 +269,20 @@ function loadAppData(appKey) {
   return loadJson(fileMap[appKey]);
 }
 
+/**
+ * Async version — returns LIVE API data when in live mode (same data the Q&A flow uses).
+ * Falls back to JSON files when not in live mode or cache is empty.
+ */
+async function loadAppDataLive(appKey) {
+  if (isLiveMode()) {
+    var allApps = await loadAllApps();
+    if (allApps[appKey]) {
+      return allApps[appKey];
+    }
+  }
+  return loadAppData(appKey);
+}
+
 function updateAppItem(appKey, itemId, updates) {
   const fileMap = {
     wiki: 'wiki.json',
@@ -309,6 +323,7 @@ module.exports = {
   loadPermissions,
   savePermissions,
   loadAppData,
+  loadAppDataLive,
   updateAppItem,
   loadJson,
   DATA_DIR,

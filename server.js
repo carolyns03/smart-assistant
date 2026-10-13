@@ -6,6 +6,7 @@ const {
   loadAllAppsSync,
   loadUsers,
   loadAppData,
+  loadAppDataLive,
   updateAppItem,
   loadPermissions,
   savePermissions,
@@ -326,10 +327,10 @@ app.post('/api/diary/tamper', requireAdmin, function (req, res) {
 });
 
 // ─── App data editing (for the "live edit" demo) — ADMIN PROTECTED ───
-app.get('/api/apps/:appKey', requireAdmin, function (req, res) {
+app.get('/api/apps/:appKey', requireAdmin, async function (req, res) {
   var appKey = req.params.appKey;
   try {
-    var items = loadAppData(appKey);
+    var items = await loadAppDataLive(appKey);
     res.json(items);
   } catch (e) {
     res.status(404).json({ error: 'App not found: ' + appKey });

@@ -4,7 +4,7 @@
 
 1. Start the server: `node server.js` (or `DATA_SOURCE=live node server.js` for live APIs)
 2. Open http://localhost:3000
-3. Verify connector status badges show LIVE or MOCK for each platform
+3. Verify the data mode indicator shows LIVE API mode (if live credentials are configured)
 
 ---
 
@@ -21,9 +21,9 @@
 ### Expected Results
 - Answer synthesizes evidence from Confluence + Jira + Slack
 - Citation IDs shown as clickable links (e.g., `[WIKI-65960]`, `[JIRA-003]`)
-- Provenance labels show LIVE/MOCK per connector
 - Platforms consulted: Confluence, Jira, Slack
 - Audit entry number shown at bottom
+- Per-connector provenance (LIVE/MOCK) is NOT shown to users — available only in audit trail
 
 ### Cross-Source Verification
 - The answer should reference items from multiple platforms, not just list platform names
@@ -44,8 +44,8 @@
 
 ### Expected Results
 - Answer includes the updated content ("NEW FAILOVER STEP")
-- Freshness timestamp shows recent update time
 - Manual refresh available via `/api/refresh` endpoint
+- Freshness timestamp is NOT shown in the chat UI (hidden for security)
 
 ### Freshness Test
 1. Read a test resource via API
@@ -88,7 +88,7 @@
 2. Persona: Alex Kim (Backend Engineer) — auto-selected
 3. Question: "What's the status of the database migration project?"
 4. Click **Ask** — record the baseline answer and source list
-5. In the S4 panel, select a resource from the dropdown (e.g., a Confluence page)
+5. In the S4 panel, select a resource from the dropdown (shows all live API resources from all 4 platforms)
 6. Click **DENY selected resource**
 7. Click **Ask** again (same question, same user)
 8. Verify the denied resource is EXCLUDED from sources
@@ -134,11 +134,11 @@
 - Authorization decisions (ALLOW/DENY per resource)
 - Denied resource IDs + reasons
 - Authorized resource IDs (sent to LLM)
-- Source LIVE/MOCK provenance per connector
 - LLM mode (gemini)
 - Verified citations
 - Permission changes (if any)
 - Hash-chain fingerprint + previous fingerprint
+- Per-connector provenance (LIVE/MOCK) and freshness timestamps are NOT shown in the audit trail UI — they remain in the server-side audit log
 
 ### Tamper Detection
 - Tampering any field breaks the hash chain

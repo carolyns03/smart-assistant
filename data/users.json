@@ -3,7 +3,7 @@
     "id": "user-junior",
     "name": "Alex Kim",
     "title": "Backend Engineer",
-    "role": "contractor",
+    "role": "security_team",
     "description": "A backend engineer who sees normal engineering and general content. Has access to most non-secret items but cannot view security incident channels or business/financial reports.",
     "permissions": {
       "wiki": {
@@ -18,13 +18,12 @@
         "access": "channel-based",
         "allowedChannels": [
           "#general",
-          "#random",
-          "#design"
-        ],
-        "deniedChannels": [
           "#engineering",
+          "#random",
+          "#design",
           "#security-incidents"
-        ]
+        ],
+        "deniedChannels": []
       },
       "drive": {
         "access": "role-based",

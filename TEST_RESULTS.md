@@ -58,12 +58,12 @@ These tests make real HTTP requests to the running server.
 | 15 | Contractor has deniedItems | Permission filtering visible in response | ✅ PASS |
 | 16 | Diary verify returns valid | Hash-chain integrity confirmed | ✅ PASS |
 | 17 | Tamper + verify detects tampering | Tamper detection works | ✅ PASS |
-| 18 | Connector status returned | /api/refresh returns connector status | ✅ PASS |
+| 18 | Connector status returned | /api/refresh returns connector status (hidden from UI) | ✅ PASS |
 | 19 | Null connector not reported as LIVE | ERROR status when connector returns null | ✅ PASS |
-| 20 | Provenance in answer | Response includes provenance object | ✅ PASS |
-| 21 | Provenance has LIVE/MOCK per connector | Each connector has status field | ✅ PASS |
+| 20 | Provenance in API response | Response includes provenance object (hidden from UI) | ✅ PASS |
+| 21 | Provenance has LIVE/MOCK per connector | Each connector has status field (hidden from UI) | ✅ PASS |
 | 22 | Data freshness: update + verify | wiki-016 update reflected in response | ✅ PASS |
-| 23 | Cache refresh updates timestamp | Manual refresh works | ✅ PASS |
+| 23 | Cache refresh updates timestamp | Manual refresh works (timestamp hidden from UI) | ✅ PASS |
 
 ---
 
@@ -88,7 +88,12 @@ These tests make real HTTP requests to the running server.
 | Payment service runbook | user-oncall | wiki-016 | Confluence | ✅ PASS |
 | Database migration project | user-junior | Cross-source: Confluence + Jira | Confluence, Jira | ✅ PASS |
 
-### S3: Permission Enforcement
+### S2: Data Freshness
+| Question | User | Sources | Result |
+|----------|------|---------|--------|
+| Payment service runbook | user-oncall | wiki-016 (updated content) | ✅ PASS |
+
+(Freshness timestamp is no longer shown in the chat UI — hidden for security. The update is verified by checking the answer content includes the new failover step.)
 | Question | User | Answer | Result |
 |----------|------|--------|--------|
 | Security incident report | user-contractor | "Evidence insufficient" | ✅ PASS |
@@ -116,3 +121,5 @@ These tests make real HTTP requests to the running server.
 1. **LIVE API tests**: Slack, Confluence, and Jira connectors are verified LIVE with real API keys. Drive requires a valid (non-expired) OAuth access token to test LIVE.
 2. **Gemini API**: Integration tests call the real Gemini API, which may rate-limit or fail if the API key is invalid.
 3. **Data freshness**: The 5-minute cache TTL is not explicitly tested with a timer in the test suite. Manual verification confirms updates appear after refresh.
+4. **UI hiding**: Provenance (LIVE/MOCK per connector), freshness timestamps, denied/total resource counts, and connector status badges are hidden from both the chat UI and audit trail page. The API responses still contain this data (tests 18-21 verify this), but it is not rendered in the frontend. The server-side audit log (`data/diary.json`) retains all information.
+5. **S4 dropdown**: The resource dropdown now uses `loadAppDataLive()` to fetch live API data (same cache as Q&A flow). Previously it only read static JSON files.

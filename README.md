@@ -11,7 +11,7 @@ Built for the **Tencent Cloud AI Singapore Hackathon 2026**.
 Internal Brain lets users ask natural-language questions and get answers grounded in **authorized** evidence from four enterprise platforms:
 
 1. **Unified Query (S1)** — Cross-platform answers with verified citations
-2. **Data Freshness (S2)** — 5-minute cache with manual refresh and source update detection
+2. **Data Freshness (S2)** — 5-minute cache with manual refresh and source update detection (no hardcoded timestamps)
 3. **Permission Enforcement (S3)** — Permission filtering BEFORE content reaches the LLM
 4. **Permission Change (S4)** — Resource-level ALLOW/DENY/RESET with immediate effect
 5. **Audit Trail (S5)** — Tamper-proof hash-chain audit of every query, decision, and answer
@@ -21,7 +21,7 @@ Internal Brain lets users ask natural-language questions and get answers grounde
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Frontend (Browser)                        │
-│  Persona Select │ Chat │ S1-S5 Nav │ Connector Status │ Audit│
+│  Persona Select │ Chat │ S1-S5 Nav │ Audit│
 └──────────────────────────┬──────────────────────────────────┘
                            │ HTTP API
 ┌──────────────────────────▼──────────────────────────────────┐
@@ -70,7 +70,7 @@ User Question
 
 1. **Explicit DENY always takes precedence** over ALLOW
 2. **Fail-closed**: Unknown or unverified authorization denies access
-3. **No denied content or metadata reaches the LLM**
+3. **No denied content, resource counts, or connector status reaches the user UI** — only the audit trail (S5) shows full details
 4. **No raw-data API bypasses authorization** — admin auth required
 5. **Permission checks happen on the server**, not the frontend
 6. **ALLOW demo override cannot bypass source-native denial**
@@ -135,7 +135,7 @@ Open http://localhost:3000
 | **LIVE** | Real API calls to Slack/Jira/Confluence/Drive | Set `DATA_SOURCE=live` + API keys |
 | **MOCK** | JSON fixture files in `data/` | Leave `DATA_SOURCE` unset |
 
-The UI clearly labels each connector as LIVE, MOCK, EMPTY, or ERROR.
+The data mode (LIVE/MOCK) is indicated in the UI. Per-connector status badges, provenance labels, and freshness timestamps are hidden from the chat UI for security — they are available only in the audit trail (S5) for compliance officers.
 
 ## Running Tests
 
@@ -154,7 +154,7 @@ node tests/integration-tests.js
 
 | Persona | Role | Access Level |
 |---------|------|-------------|
-| Alex Kim | Backend Engineer (`junior_engineer`) | Engineering + general content, no security |
+| Alex Kim | Backend Engineer (`security_team`) | Engineering + general content |
 | Jennifer Park | On-Call Engineer (`junior_engineer`) | Engineering + runbooks, no security |
 | Jordan Lee | Outside Contractor (`contractor`) | General only, no engineering or security |
 | Taylor Wu | Customer Service (`customer_service`) | General + customer-facing docs, no financial data |
@@ -168,10 +168,11 @@ node tests/integration-tests.js
 
 ### Data & Freshness
 - `GET /api/refresh` — Refresh cache, get connector status
-- `GET /api/apps/:app` — Raw data access (admin auth required)
+- `GET /api/apps/:app` — Raw data access (admin auth required, returns live API data when in live mode)
 
 ### Permissions (S4)
 - `PUT /api/permissions/:userId/resource/:appKey/:itemId` — ALLOW/DENY/RESET a resource
+- The S4 resource dropdown fetches the full live resource list using compliance officer credentials (so all resources are visible for deny/reset actions)
 - `PUT /api/users/:userId/role` — Change user role
 - `POST /api/permissions/:userId/reset` — Reset all overrides
 - `POST /api/reset` — Reset everything (admin auth required)
@@ -221,9 +222,10 @@ smart-assistant-master/
 1. **Jira connector**: Uses Jira Cloud REST API v3 (`/rest/api/3/search/jql`). The v2 endpoint was deprecated by Atlassian and now returns HTTP 410. Requires valid Atlassian Cloud API token.
 2. **Google Drive**: Uses access tokens (not service account). Token refresh requires re-authorization via OAuth flow.
 3. **Slack**: Bot must be invited to channels to read messages. `not_in_channel` errors are handled gracefully.
-4. **Mock data**: When `DATA_SOURCE` is not set to `live`, the system uses JSON fixtures. These are clearly labeled as MOCK in the UI.
+4. **Mock data**: When `DATA_SOURCE` is not set to `live`, the system uses JSON fixtures.
 5. **Admin authentication**: Uses header-based `x-admin-user-id` for demo purposes. Production deployment should use proper session/JWT authentication.
-6. **Tencent Cloud**: This application does not currently use Tencent Cloud services. The Gemini API is the LLM provider. Any Tencent Cloud integration would require additional setup and verification.
+6. **UI information hiding**: Per-connector status badges, provenance labels (LIVE/MOCK per connector), freshness timestamps, and denied/total resource counts are hidden from the chat UI and audit trail page. This information is available only in the server-side audit log for compliance officers.
+7. **Tencent Cloud**: This application does not currently use Tencent Cloud services. The Gemini API is the LLM provider.
 
 ## Tech Stack
 

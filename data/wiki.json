@@ -254,7 +254,7 @@
   {
     "id": "wiki-016",
     "title": "Payment Service Incident Runbook",
-    "content": "Payment-service incident response runbook. Step 1: Check Stripe dashboard for error rate. Step 2: Verify webhook endpoint is reachable. Step 3: If payment gateway is down, enable circuit breaker and queue payments. Step 4: NEW FAILVER STEP - Failover to backup payment gateway at pg-failover.company.internal if primary is down for more than 5 minutes. Step 5: Post incident status in #engineering. Step 6: Create P0 ticket in Jira. This runbook was updated at 1:00 PM today with the new failover step.",
+    "content": "Payment-service incident response runbook. Step 1: Check Stripe dashboard for error rate. Step 2: Verify webhook endpoint is reachable. Step 3: If payment gateway is down, enable circuit breaker and queue payments. Step 4: NEW FAILVER STEP - Failover to backup payment gateway at pg-failover.company.internal if primary is down for more than 5 minutes. Step 5: Post incident status in #engineering. Step 6: Create P0 ticket in Jira. This runbook includes a newly added failover step.",
     "tags": [
       "devops",
       "payments",
@@ -267,7 +267,7 @@
       "security_team",
       "compliance_officer"
     ],
-    "lastUpdated": "2026-10-13T13:35:42.863Z"
+    "lastUpdated": "2026-10-13T16:34:15.694Z"
   },
   {
     "id": "wiki-017",

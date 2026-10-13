@@ -104,9 +104,9 @@
 ## 7. Frontend
 
 ### Denied Item Counts Hidden from Users
-- **Current**: The chat UI does NOT show denied item counts or total resource counts to end users. This information is available only in the audit trail (`diary.html`) for compliance officers.
-- **Rationale**: Showing how many resources were denied or total resource counts reveals information about what resources exist, which could be a security concern.
-- **Audit Trail**: Compliance officers can see full denied item lists, reasons, and counts in the audit trail (S5).
+- **Current**: The chat UI does NOT show denied item counts, total resource counts, per-connector status badges (LIVE/MOCK/ERROR), provenance labels, or freshness timestamps to end users. This information is available only in the audit trail (`diary.html`) for compliance officers.
+- **Rationale**: Showing how many resources were denied, total resource counts, or per-connector status reveals information about what resources exist and the backend infrastructure, which could be a security concern.
+- **Audit Trail**: Compliance officers can see full denied item lists, reasons, and counts in the audit trail (S5). However, provenance (LIVE/MOCK per connector) and freshness timestamps have also been removed from the audit trail UI for consistency — they remain in the server-side audit log (`data/diary.json`).
 
 ### No Framework
 - **Current**: Vanilla HTML/CSS/JS.
@@ -114,7 +114,7 @@
 - **Impact**: Suitable for demo/hackathon. Production would benefit from a framework.
 
 ### No Real-time Updates
-- **Current**: Connector status is loaded on page load and after refresh.
+- **Current**: Data mode indicator is loaded on page load and after refresh. Per-connector status badges are hidden from the UI.
 - **Limitation**: No WebSocket or SSE for real-time status updates.
 
 ---
@@ -129,3 +129,16 @@
 ### No Pagination
 - **Current**: All search results returned at once.
 - **Limitation**: Large result sets are not paginated.
+
+---
+
+## 9. S4 Resource Dropdown
+
+### Live Data Integration
+- **Current**: The S4 resource dropdown fetches the full resource list via `/api/apps/:app` using compliance officer credentials. This returns live API data (same cache as the Q&A flow) when `DATA_SOURCE=live` is set.
+- **Previous Issue**: The dropdown previously used `loadAppData()` which only read static JSON files — it never touched the live cache. This was fixed by adding `loadAppDataLive()` which reads from the same in-memory cache as the Q&A flow.
+- **Admin Auth**: The endpoint requires compliance officer role. The frontend sends `x-admin-user-id: user-compliance` to authenticate.
+
+### S2 Data Freshness Scenario
+- **Current**: The S2 runbook update scenario no longer includes hardcoded timestamps (e.g., "updated at 1:00 PM today"). The runbook content simply states it "includes a newly added failover step."
+- **Rationale**: Hardcoded timestamps become stale during demos. The freshness is demonstrated by the cache behavior, not by a specific time reference.
